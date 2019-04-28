@@ -14,8 +14,8 @@
   %=========
   % 中文信息
   %=========
-  ctitle={基于弱监督注意力的\\多人姿态估计方法},
-  cdegree={工学硕士},
+  ctitle={基于弱监督的特征层级注意力的多人姿态估计},
+  cdegree={工学学士},
   cdepartment={信息学部},
   cmajor={信息安全},
   cauthor={刘方瑞},
@@ -38,7 +38,7 @@
   %=========
   % 英文信息
   %=========
-  etitle={An Introduction to \LaTeX{} Thesis Template of Tsinghua University v\version},
+  etitle={Weakly Supervised Feature-level Attention for Instance-aware Multi-Person Pose Estimation},
   % 这块比较复杂，需要分情况讨论：
   % 1. 学术型硕士
   %    edegree：必须为Master of Arts或Master of Science（注意大小写）
@@ -54,65 +54,45 @@
   % 4. 专业型博士
   %    edegree：“填写专业学位英文名称全称”
   %    emajor：不填写此项
-  edegree={Doctor of Engineering},
-  emajor={Computer Science and Technology},
-  eauthor={Xue Ruini},
-  esupervisor={Professor Zheng Weimin},
-  eassosupervisor={Chen Wenguang},
+  edegree={Bachelor of Engineer},
+  emajor={Faculty of Information},
+  eauthor={Liu Fangrui},
+  esupervisor={Professor Ma Wei},
+  %eassosupervisor={Chen Wenguang},
   % 日期自动生成，若需指定按如下方式修改：
   % edate={December, 2005}
   %
   % 关键词用“英文逗号”分割
-  ckeywords={TeX, LaTeX, CJK, 模板, 论文},
-  ekeywords={TeX, LaTeX, CJK, template, thesis}
+  ckeywords={计算机视觉, 人体姿态估计, 实例分割, 注意力机制, 弱监督学习},
+  ekeywords={Computer Vision, Human Pose Estimation, Instance Segmentation, Attention Mechanism, Weakly Supervised Learning}
 }
 
 % 定义中英文摘要和关键字
 \begin{cabstract}
-  论文的摘要是对论文研究内容和成果的高度概括。摘要应对论文所研究的问题及其研究目
-  的进行描述，对研究方法和过程进行简单介绍，对研究成果和所得结论进行概括。摘要应
-  具有独立性和自明性，其内容应包含与论文全文同等量的主要信息。使读者即使不阅读全
-  文，通过摘要就能了解论文的总体内容和主要成果。
-
-  论文摘要的书写应力求精确、简明。切忌写成对论文书写内容进行提要的形式，尤其要避
-  免“第 1 章……；第 2 章……；……”这种或类似的陈述方式。
-
-  本文介绍清华大学论文模板 \thuthesis{} 的使用方法。本模板符合学校的本科、硕士、
-  博士论文格式要求。
+  由于在自然图像中的人体存在大量遮挡，因此多人姿态估计是一个相当有挑战的任务。现阶段从单目图像中估计多人姿态的方法可以被分为自顶向下与自底向上两种，然而两种方法都有他们各自的劣势。
+  
+  本文提出了一个用于多人姿态估计的全新的结构。这个结构借鉴了两种方法的设计思路，并能够融合实例分割的结果，同时优化姿态估计与分割结果。通过在现有的姿态估计分支中引入注意力机制，让网络获得了分辨不同人体的能力，一定程度上解决了遮挡的问题。网络中的注意力使用了弱监督学习的方法，使用关键点与实例分割的两个损失函数完成对其的约束。
+  
+  通过上述结构，本文提出的方法能够在相比自顶向下和自底向上方法更少计算冗余的条件下，有效的得到准确的姿态估计结果。通过实验我们证明了，该结构能够得到令人接受的结果，还有注意力机制在方法中的有效性。
 
   本文的创新点主要有：
   \begin{itemize}
-    \item 用例子来解释模板的使用方法；
-    \item 用废话来填充无关紧要的部分；
-    \item 一边学习摸索一边编写新代码。
+    \item 提出了全新的网络结构，用于同时优化实例分割与姿态估计结果；
+    \item 引入注意力机制让网络自主学习关注区域；
+    \item 对于难以显式监督的注意力，使用弱监督方法隐式限制注意力的形成。
   \end{itemize}
 
-  关键词是为了文献标引工作、用以表示全文主要内容信息的单词或术语。关键词不超过 5
-  个，每个关键词中间用分号分隔。（模板作者注：关键词分隔符不用考虑，模板会自动处
-  理。英文关键词同理。）
 \end{cabstract}
 
 % 如果习惯关键字跟在摘要文字后面，可以用直接命令来设置，如下：
-% \ckeywords{\TeX, \LaTeX, CJK, 模板, 论文}
+% \ckeywords{计算机视觉, 人体姿态估计, 实例分割, 注意力机制, 弱监督学习}
 
 \begin{eabstract}
-   An abstract of a dissertation is a summary and extraction of research work
-   and contributions. Included in an abstract should be description of research
-   topic and research objective, brief introduction to methodology and research
-   process, and summarization of conclusion and contributions of the
-   research. An abstract should be characterized by independence and clarity and
-   carry identical information with the dissertation. It should be such that the
-   general idea and major contributions of the dissertation are conveyed without
-   reading the dissertation.
+Multi-person pose estimation is a challenging task due to various body shapes and occlusion. Current methods to monocular multi-person pose estimation are categorized into top-down and bottom-up methods, while both of these two approaches have their own constraints.
 
-   An abstract should be concise and to the point. It is a misunderstanding to
-   make an abstract an outline of the dissertation and words ``the first
-   chapter'', ``the second chapter'' and the like should be avoided in the
-   abstract.
+In this work, we propose a novel hybrid architecture for multi-person pose estimation, which benefit from both top-down and bottom-up methods. With an existing global pose extraction branch, we introduce attention mechanism to make the network capable of distinguish by instances. The model is designed refine the result of both segmentation and pose estimation. The attention is trained in weakly supervised learning fashion, being constrained by both two refine loss of instance segmentation and key-points.
 
-   Key words are terms used in a dissertation for indexing, reflecting core
-   information of the dissertation. An abstract may contain a maximum of 5 key
-   words, with semi-colons used in between to separate one another.
+With the help of mutual promotion from the proposed architecture, our method is able to generate accurate pose results with less redundant than single top-down or bottom-up approaches. Experiments on benchmark shows that the our model achieves comparable results to other state-of-the-art methods.
 \end{eabstract}
 
-% \ekeywords{\TeX, \LaTeX, CJK, template, thesis}
+% \ekeywords{Computer Vision, Human Pose Estimation, Instance Segmentation, Attention Mechanism, Weakly Supervised Learning}
