@@ -4,15 +4,15 @@
 \section{概述}
 \label{sec:methodoverview}
 %   This part intends to state the overall idea
-本方法使用基于残差网络\footnote{残差网络，简称ResNet, 全称Residual Network}与特征金字塔网络\footnote{特征金字塔网络，简称FPN, 全程Feature Pyramid Network}结构的网络框架作为特征提取的骨架，为模型提供各个尺度的特征图。在特征提取部分之后，网络可以分为两个步骤：目标检测与姿态估计与融合回归。在目标检测与姿态估计过程中，网络预测出目标的边界框，粗略的关键点预测和实例分割结果。而在融合回归部分，网络会接受从目标检测与姿态估计阶段产生的结果并将它们一同以一定的方式互相交汇并一起回归。而且，在融合回归的过程中，网络采取了多阶段的堆叠和中继监督的策略来共同精炼关键点与实例分割的结果。这种结构是受到CPM\cite{wei2016convolutional}的启发而设计的。同时，为了有效地融合实例分割与姿态估计的结果，网络使用了注意力机制，使其根据实例分割的生成注意力关注网络对应的区域，从而达到方法最初设计的目的，也就是解决多人检测下姿态遮挡的问题。同时，考虑到姿态估计的信息对实例分割也有促进作用，我们设计了双流的网络结构让模型在每个阶段都能同时预测分割结果和姿态估计结果，并送入下一阶段继续优化。
+本方法使用基于残差网络\footnote{残差网络，简称ResNet, 全称Residual Network}与特征金字塔网络\footnote{特征金字塔网络，简称FPN, 全程Feature Pyramid Network}结构的网络框架作为特征提取的骨架，为模型提供各个尺度的特征图。在特征提取部分之后，网络可以分为目标检测与姿态估计和融合回归两个步骤。在目标检测与姿态估计过程中，网络预测出目标的边界框，粗略的关键点预测和实例分割结果。而在融合回归部分，网络会接受从目标检测与姿态估计阶段产生的结果并将它们一同以一定的方式互相交汇并一起回归。而且，在融合回归的过程中，网络采取了多阶段的堆叠和中继监督的策略来共同精炼关键点与实例分割的结果。这种结构是受到CPM\cite{wei2016convolutional}的启发而设计的。同时，为了有效地融合实例分割与姿态估计的结果，网络使用了注意力机制，使其根据实例分割的生成注意力关注网络对应的区域，从而达到方法最初设计的目的，也就是解决多人检测下姿态遮挡的问题。同时，考虑到姿态估计的信息对实例分割也有促进作用，我们设计了双流的网络结构让模型在每个阶段都能同时预测分割结果和姿态估计结果，并送入下一阶段继续优化。
 
 %	ROI Extraction
 %	key-point & Mask Prdiction
 %		Stage One's Prediction
-网络通过特征提取器$E$得到图像$I$来自网络各个尺度的特征$F$。这些特征被兴趣区域对齐层\footnote{兴趣区域对齐层，简称RoI Align Layer, 全称Region of Interest Align Layer}通过双线性插值的方法调整到了一样的尺寸。每个图像中只有来自一个尺度的特征图被选中并被输入至接下来的目标检测与姿态估计部分。这个被选中的特征被分别送入了目标检测分支$D$与姿态估计分支$P$，分别得到了实例分割结果$S^1=\{s_1^1, s_1^2, ..., s_1^n\}$与姿态估计结果$K^1=\{k_1^1, k_2^1, ..., k_1^n\}$。这些中间结果会被输入到融合优化阶段进行多阶段的回归。
+网络通过特征提取器$E$得到图像$I$来自网络各个尺度的特征$F=\{f_1, f_2, ..., f_5\}$。这些特征被兴趣区域对齐层\footnote{兴趣区域对齐层，简称RoI Align Layer, 全称Region of Interest Align Layer}通过双线性插值的方法调整到了同样的尺寸。每个图像中只有来自特定尺度$k$的特征图$f_k$被选中并被输入至接下来的目标检测与姿态估计部分。这个被选中的特征被分别送入了目标检测分支$D$与姿态估计分支$P$，分别得到了实例分割结果$S_1=\{s_1^1, s_1^2, ..., s_1^n\}$与姿态估计结果$K_1=\{k_1^1, k_2^1, ..., k_1^n\}$。这些中间结果会被输入到融合优化阶段进行多阶段的回归。
 
 %		Stage 2+'s Prediction
-网络整体
+在融合优化阶段的第$t(t>2)$阶段，输入的特征被分为完全一样的两份进入单个地优化模块。第一份拷贝会首先与来自上一阶段的姿态结果$K_1$进行合并，并一同被送入一组\textit{Shared Convolution Layers}中。第二份拷贝同样会与上一阶段的实例分割结果$S_1$进行合并，并被输入至\textit{Attention Converter}中。
 
 The feature maps from the extractor are divided into two copies. The first copy is consumed by a group of shared convolution layers, concatenated with $K_{t-1}$ from $stage_{t-1}$ as the input of those layers. The second copy flows to the \textit{Attention Converter} module, also is concatenated with $M_{t-1}$ from $stage_{t-1}$.To get refined key-point predictions, the \textit{key-point head} takes feature maps which are multiplied by soft attention from the \textit{Attention Converter}. On the other hand, the mask prediction accept both attention and features from the \textit{share conv}. As the refine stage takes mask and key-point prediction from last stage and output for the current stage, we can denote the refine stage as \eqref{def:refinenet}, where $R$ refers the refine stage.
 \begin{equation}

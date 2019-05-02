@@ -117,11 +117,11 @@
   nomarginpar}
 \ifthu@bachelor
   \geometry{
-    left=32mm,
+    top=30.1mm,
+    left=25mm,
     headheight=5mm,
     headsep=5mm,
-    textheight=227mm,
-    bottom=32mm,
+    bottom=29.5mm,
     footskip=12mm}
 \else
   \geometry{
@@ -217,6 +217,7 @@
   \setCJKsansfont[AutoFakeBold]{SimHei}
   \setCJKfamilyfont{zhsong}[AutoFakeBold]{SimSun}
   \setCJKfamilyfont{zhhei}[AutoFakeBold]{SimHei}
+  \setCJKfamilyfont{zhli}[AutoFakeBold]{LiSu}
 }{}
 \ifthenelse{\equal{\thu@fontset}{mac}}{
   \setCJKmainfont[
@@ -230,8 +231,10 @@
          UprightFont = * Light,
             BoldFont = * Bold,
     ]{Songti SC}
-  \setCJKfamilyfont{zhhei}[BoldFont=* Medium]{Heiti SC}
+  \setCJKfamilyfont{zhhei}[BoldFont=* Bold]{Heiti SC}
   \setCJKfamilyfont{zhkai}[BoldFont=* Bold]{Kaiti SC}
+  \setCJKfamilyfont{zhli}[BoldFont=* Bold]{LiSu}
+  \newcommand*{\lishu}{\CJKfamily{zhli}}
   \xeCJKsetwidth{‘’“”}{1em}
 }{}
 \renewcommand\normalsize{%
@@ -358,7 +361,7 @@
   \fancyhead[C]{\lishu \sanhao 北京工业大学毕业设计（论文）}
   \fancyfoot{}
   \fancyfoot[C]{\wuhao\thepage}
-  \renewcommand{\headrulewidth}{1pt}
+  \renewcommand{\headrulewidth}{0.4pt}
   \renewcommand{\footrulewidth}{0pt}}
 \fancypagestyle{thu@headings}{%
   \fancyhead{}
@@ -496,7 +499,7 @@
   \noalign{\ifnum0=`}\fi\hrule \@height #1 \futurelet
     \reserved@a\@xhline}
 \ifthu@bachelor
-  \newcommand{\cabstractname}{中文摘要}
+  \newcommand{\cabstractname}{摘\hspace{\ccwd}要}
   \newcommand{\eabstractname}{Abstract}
 \else
   \newcommand{\cabstractname}{摘\hspace{\ccwd}要}
@@ -531,7 +534,7 @@
     beforeskip={\ifthu@bachelor 15bp\else 9bp\fi},
     aftername=\hskip\ccwd,
     afterskip={\ifthu@bachelor 20bp\else 24bp\fi},
-    format={\centering\sffamily\ifthu@bachelor\xiaoer[1.333]\else\sanhao[1]\fi},
+    format={\centering\songti\ifthu@bachelor\xiaoer[1.333]\bfseries\else\sanhao[1]\fi},
     nameformat=\relax,
     numberformat=\relax,
     titleformat=\thu@chapter@titleformat,
@@ -542,20 +545,20 @@
     afterindent=true,
     beforeskip={\ifthu@bachelor 25bp\else 24bp\fi\@plus 1ex \@minus .2ex},
     afterskip={\ifthu@bachelor 12bp\else 6bp\fi \@plus .2ex},
-    format={\sffamily\ifthu@bachelor\xiaosan[1.286]\else\sihao[1.429]\fi},
+    format={\songti\ifthu@bachelor\xiaosan[1.286]\bfseries\else\sihao[1.429]\fi},
   },
   subsection={
     afterindent=true,
     beforeskip={\ifthu@bachelor 12bp\else 16bp\fi\@plus 1ex \@minus .2ex},
     afterskip={6bp \@plus .2ex},
-    format={\sffamily\ifthu@bachelor\xiaosan[1.25]\else\banxiaosi[1.538]\fi},
-    numberformat={\sffamily\ifthu@bachelor\sihao[1.154]\else\banxiaosi[1.538]\fi},
+    format={\songti\ifthu@bachelor\xiaosan[1.25]\bfseries\else\banxiaosi[1.538]\fi},
+    numberformat={\songti\ifthu@bachelor\sihao[1.154]\bfseries\else\banxiaosi[1.538]\fi},
   },
   subsubsection={
     afterindent=true,
     beforeskip={\ifthu@bachelor 12bp\else 16bp\fi\@plus 1ex \@minus .2ex},
     afterskip={6bp \@plus .2ex},
-    format={\sffamily\ifthu@bachelor\xiaosi[1.25]\else\xiaosi[1.667]\fi},
+    format={\songti\ifthu@bachelor\xiaosi[1.25]\bfseries\else\xiaosi[1.667]\fi},
   },
   paragraph/afterindent=true,
   subparagraph/afterindent=true}
@@ -632,6 +635,7 @@
 \thu@def@term{secretyear}
 \thu@def@term{ctitle}
 \thu@def@term{etitle}
+\thu@def@term{studentno}
 \thu@def@term{cauthor}
 \thu@def@term{csupervisor}
 \thu@def@term{cassosupervisor}
@@ -696,6 +700,8 @@
     \def\thu@author@title{研究生}
   \fi
 \fi
+\def\thu@studentno@title{学号}
+\def\thu@cdate@title{日期}
 \def\thu@postdoctor@first@discipline@title{流动站（一级学科）名称}
 \def\thu@postdoctor@second@discipline@title{专\hspace{1em}业（二级学科）名称}
 \def\thu@secret@content{%
@@ -838,21 +844,13 @@
     \parbox[b][2.4cm][t]{\textwidth}{%
       \ifthu@secret{\heiti\sanhao\thu@secretlevel\thu@secret@content}\else\rule{1cm}{0cm}\fi}
     \ifthu@bachelor
-      \vskip0.65cm
+      \vskip2cm
       % 嵌入北京工业大学图标
       \includegraphics[scale=1]{BJUT.png}
-      \par\vskip1.5cm
+      \par\vskip1cm
       % 北京工业大学毕业设计（论文）标题
-      {\fontsize{70pt}{70pt}\ziju{0.6}\lishu\textbf\thu@bachelor@subtitle}
-      \vskip2.2cm\hskip0.8cm
-      \noindent\heiti\xiaoer\thu@bachelor@title@pre\thu@title@sep
-      \parbox[t]{12cm}{%
-      \ignorespaces\yihao[1.51]%
-      \renewcommand{\CJKunderlinebasesep}{0.25cm}%
-      \renewcommand{\ULthickness}{1.3pt}%
-      \xeCJKsetup{underline/format=\color{black}}%
-      \CJKunderline*{\thu@ctitle}}%
-      \vskip1.3cm
+      {\fontsize{70pt}{50pt}\ziju{0.5}\bfseries\lishu\thu@bachelor@subtitle}
+      \vskip2.2cm
     \else
       \vskip0.8cm
       \parbox[t][9cm][t]{\paperwidth-8cm}{
@@ -872,22 +870,20 @@
       \fi%
       \parbox[t][\thu@tempa][t]{\textwidth}{%
         {\heiti\erhao[1.95]%
-         \hspace*{1.9cm}
+         \hspace*{1cm}
          \setlength{\thu@title@width}{4em}
-         \setlength{\extrarowheight}{6pt}
-         \begin{tabular}{p{\thu@title@width}@{}l@{\extracolsep{8pt}}l}
-             \thu@put@title{\thu@department@title} & \thu@title@sep
-               & \thu@cdepartment\\
-             \thu@put@title{\thu@major@title}      & \thu@title@sep
-               & \thu@cmajor\\
+         \setlength{\extrarowheight}{10pt}
+         \begin{tabular}{p{\thu@title@width}@{}l@{\extracolsep{20pt}}l}
+             \thu@put@title{\thu@bachelor@title@pre} & \thu@title@sep
+               & \parbox[t]{8cm}{\thu@ctitle\vskip1.5cm}\\
              \thu@put@title{\thu@author@title}     & \thu@title@sep
                & \thu@cauthor \\
+             \thu@put@title{\thu@studentno@title}  & \thu@title@sep
+               & \thu@studentno \\
              \thu@put@title{\thu@supervisor@title} & \thu@title@sep
                & \thu@csupervisor\\
-             \ifx\thu@cassosupervisor\@empty\else%
-               \thu@put@title{\thu@assosuper@title} & \thu@title@sep
-               & \thu@cassosupervisor\\
-             \fi
+               \thu@put@title{\thu@cdate@title} & \thu@title@sep
+               & \thu@cdate\\
            \end{tabular}
         }}
     \else
@@ -922,12 +918,13 @@
             \end{tabular}
         \end{center}}}
       \fi
+  \if\not\thu@bachelor
      \begin{center}
-       {\ifthu@bachelor\vskip1cm\xiaosan\else%
-         \vskip-0.5cm\sanhao\fi%
+       { \vskip-0.5cm\sanhao
          \songti\thu@cdate}
      \end{center}
-    \end{center}} % end of titlepage
+  \fi
+\end{center}} % end of titlepage
 \def\thu@master@art{Master of Arts}
 \def\thu@master@sci{Master of Science}
 \def\thu@doctor@phi{Doctor of Philosophy}
@@ -997,7 +994,7 @@
   \end{center}}
 \newcommand{\thu@authorization@mk}{%
   \ifthu@bachelor\vspace*{0.2cm}\else\vspace*{0.42cm}\fi % shit code!
-  \begin{center}\sanhao\heiti\thu@authtitle\end{center}
+  \begin{center}\sanhao\heiti\textbf\thu@authtitle\end{center}
   \ifthu@bachelor\vskip5pt\else\vskip40pt\sihao[2.03]\fi\par
   \thu@authorization\par
   \textbf{\thu@authorizationaddon}\par
@@ -1044,11 +1041,13 @@
       \ifthu@postdoctor\relax\else
         \cleardoublepage\thu@engcover
     \fi\fi
-
+\ifthu@bachelor
+  \includepdf[page={1}]{scan-task}
+\fi
 \ifthu@bachelor\clearpage\else\cleardoublepage\fi%
 \ifthu@postdoctor\relax\else%
   \IfNoValueTF{#1}{%
-    \begin{center}\heiti\sanhao\thu@declarename\end{center}
+    \begin{center}\heiti\sanhao\textbf\thu@declarename\end{center}
     \par{\xiaosi\parindent2em\thu@declaretext}\vskip2cm
     {\xiaosi\hfill\thu@signature\thu@underline[2.5cm]\relax%
       \thu@backdate\thu@underline[2.5cm]\relax}%

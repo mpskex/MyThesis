@@ -1,14 +1,17 @@
 \chapter{多人人体姿态估计}
 \label{cha:related}
-
+本章主要根据网络设计中涉及到领域进行了相关工作的整理与综述。多人姿态估计主要涉及了目标检测、实例分割、单人姿态估计等计算机视觉中常见的相关任务。我们就从对这三个以及多人姿态估计任务的近年研究展开，对多人姿态估计整体的相关工作进行论述。
 \section{目标检测}
 \label{sec:detect}
-\subsection{单阶段目标检测方法}
-\label{subsec:1stagedetector}
-Single Shot Detector
+目标检测的目标是给出尽可能准确的目标边界框。近年来，由于其突出的鲁棒性、泛化性，基于深度学习的目标检测方法已经成为了研究者们关注的主要方向。在本节，我们主要将按照目标检测发展顺序来总结每个类别下的典型方法。
 \subsection{两阶段目标检测方法}
 \label{2stagedetector}
+两阶段目标检测方法
 Faster R-CNN
+\subsection{单阶段目标检测方法}
+\label{subsec:1stagedetector}
+YOLO\cite{redmon2016you}的出现标志着单阶段目标检测方法的出现。
+Single Shot Detector
 
 \section{实例分割}
 \label{sec:insseg}
