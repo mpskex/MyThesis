@@ -4,42 +4,53 @@
 \section{概述}
 \label{sec:methodoverview}
 %   This part intends to state the overall idea
-本方法使用基于残差网络\footnote{残差网络，简称ResNet, 全称Residual Network}与特征金字塔网络\footnote{特征金字塔网络，简称FPN, 全程Feature Pyramid Network}结构的网络框架作为特征提取的骨架，为模型提供各个尺度的特征图。在特征提取部分之后，网络可以分为目标检测与姿态估计和融合回归两个步骤。在目标检测与姿态估计过程中，网络预测出目标的边界框，粗略的关键点预测和实例分割结果。而在融合回归部分，网络会接受从目标检测与姿态估计阶段产生的结果并将它们一同以一定的方式互相交汇并一起回归。而且，在融合回归的过程中，网络采取了多阶段的堆叠和中继监督的策略来共同精炼关键点与实例分割的结果。这种结构是受到CPM\cite{wei2016convolutional}的启发而设计的。同时，为了有效地融合实例分割与姿态估计的结果，网络使用了注意力机制，使其根据实例分割的生成注意力关注网络对应的区域，从而达到方法最初设计的目的，也就是解决多人检测下姿态遮挡的问题。同时，考虑到姿态估计的信息对实例分割也有促进作用，我们设计了双流的网络结构让模型在每个阶段都能同时预测分割结果和姿态估计结果，并送入下一阶段继续优化。
+本方法使用基于残差网络\footnote{残差网络，简称ResNet, 全称Residual Network}与特征金字塔网络\footnote{特征金字塔网络，简称FPN, 全程Feature Pyramid Network}结构的网络框架作为特征提取的骨架，为模型提供各个尺度的特征图。在特征提取部分之后，网络可以分为目标检测与姿态估计和融合回归两个步骤。在目标检测与姿态估计过程中，网络预测出目标的边界框，粗略的关键点预测和实例分割结果。而在融合回归部分，网络会接受从目标检测与姿态估计阶段产生的结果并将它们一同以一定的方式互相交汇并一起回归。而且，在融合回归的过程中，网络采取了多阶段的堆叠和中继监督的策略来共同精炼关键点与实例分割的结果。这种结构是受到CPM\cite{wei2016convolutional}的启发而设计的。同时，为了有效地融合实例分割与姿态估计的结果，网络使用了注意力机制，使其根据实例分割的生成注意力关注网络对应的区域，从而达到方法最初设计的目的，也就是解决多人检测下姿态遮挡的问题。同时，考虑到姿态估计的信息对实例分割也有促进作用，我们设计了双流的网络结构让模型在每个阶段都能同时预测分割结果和姿态估计结果，并送入下一阶段继续优化。网络的整体结果如图\ref{fig:Overall}
 
 %	ROI Extraction
 %	key-point & Mask Prdiction
 %		Stage One's Prediction
 网络通过特征提取器$E$得到图像$I$来自网络各个尺度的特征$F=\{f_1, f_2, ..., f_5\}$。这些特征被兴趣区域对齐层\footnote{兴趣区域对齐层，简称RoI Align Layer, 全称Region of Interest Align Layer}通过双线性插值的方法调整到了同样的尺寸。每个图像中只有来自特定尺度$k$的特征图$f_k$被选中并被输入至接下来的目标检测与姿态估计部分。这个被选中的特征被分别送入了目标检测分支$D$与姿态估计分支$P$，分别得到了实例分割结果$S_1=\{s_1^1, s_1^2, ..., s_1^n\}$与姿态估计结果$K_1=\{k_1^1, k_2^1, ..., k_1^n\}$。这些中间结果会被输入到融合优化阶段进行多阶段的回归。
 
-%		Stage 2+'s Prediction
-在融合优化阶段的第$t(t>2)$阶段，输入的特征被分为完全一样的两份进入单个地优化模块。第一份拷贝会首先与来自上一阶段的姿态结果$K_1$进行合并，并一同被送入一组\textit{Shared Convolution Layers}中。第二份拷贝同样会与上一阶段的实例分割结果$S_1$进行合并，并被输入至\textit{Attention Converter}中。
+\begin{figure*}[htbp]	
+	\centering
+	\includegraphics[scale=0.4]{network.eps}
+	\caption{网络整体结构}
+	\label{fig:Overall}
+\end{figure*}
 
-The feature maps from the extractor are divided into two copies. The first copy is consumed by a group of shared convolution layers, concatenated with $K_{t-1}$ from $stage_{t-1}$ as the input of those layers. The second copy flows to the \textit{Attention Converter} module, also is concatenated with $M_{t-1}$ from $stage_{t-1}$.To get refined key-point predictions, the \textit{key-point head} takes feature maps which are multiplied by soft attention from the \textit{Attention Converter}. On the other hand, the mask prediction accept both attention and features from the \textit{share conv}. As the refine stage takes mask and key-point prediction from last stage and output for the current stage, we can denote the refine stage as \eqref{def:refinenet}, where $R$ refers the refine stage.
+%		Stage 2+'s Prediction
+如图\ref{fig:RefineNet}所示，在融合优化阶段的第$t(t>2)$阶段，单个优化模块接收来自特征提取器$E$的特征$f_k$、在阶段$t-1$中得到的姿态估计结果$K_{t-1}$与实例分割结果$S_{t-1}$。整个网络有主要设计亮点可以归纳为三点。第一是我们引入了注意力机制让网络关注具体的区域，我们设计了\textit{Attention Converter}来让生成一个合适的注意力与特征图融合，最后得到关键点预测结果$K_t$。第二，网络还会根据姿态估计的中间结果，也就是一些更偏向于得到关键点预测的特征，生成实例分割的结果。这让网络会根据来自姿态估计的信息修正实例分割的结果。最后，由\textit{Attention Converter}生成的注意力还会与从姿态估计那一支生成的中间结果融合，最终生成的实例分割的优化结果$S_t$。因此，整个优化模块$R$可以被抽象为形如公式\eqref{def:refinenet}的函数。
+
+
 \begin{equation}
 \label{def:refinenet}
 M_t, K_t = R(M_{t-1}, K_{t-1})
 \end{equation}
-	%   This part is to describe why we use a hybrid multi-stage arch
+
+%   This part is to describe why we use a hybrid multi-stage arch
 %	1. mask and key-point detection is associated
 %	2. In crowd, the heatmap is not robust to predict
-Our method employs a multi-staged architecture with weakly supervised feature-level attention to refine the prediction of both the human pose and the instance segmentation. Firstly, we think that predicting an instance segmentation of a person and its key-points are associated tasks. The key-point detection result can be refined by masks. Also, the key-point detection stage in crowded scene is not robust, which means the network will be interfere by the person around the center. Hence, our method adopted an iterative refinement structure, applying attention mechanism to help the network focus on specific target. Furthermore, multi-staged architecture provides larger reception field to both key-point and mask branch, which strengthen the network's ability on distinguishing different instances.
+本方法使用了多阶段、利用弱监督约束的注意力的结构，同时优化实例分割与姿态估计的结果。首先多阶段与中继监督这两个设计可以让网络获得更大的感受野，让网络能够充分学习关键点之间的关系\cite{wei2016convolutional}。其次，由于实例分割和姿态估计是联系紧密的两个任务， 正如本文\ref{sec:generalmotivation}中提到的，实例分割与姿态估计能够相互优化，并且有相当大的相关性。所以这样设计的结构主要是希望能够同时优化姿态估计与实例分割结果。通过引入注意力以及弱监督这种较宽松约束下的可学习参数，网络能够更加适应数据中的不同表现。这让网络在一些实例分割无法正确引导关键点检测的情况下， 仍然能够生成较为正确的注意力引导关键点的检测与人体骨架的重建。
+
+\begin{figure*}[htbp]	
+	\centering
+	\includegraphics[scale=0.65]{RefineNet.pdf}
+	\caption{融合优化模块具体设计}
+	\label{fig:RefineNet}
+\end{figure*}
 
 \section{目标检测与姿态估计}
 \label{sec:detectionstage}
 %	Structure description
 %	1. Hybrid arch of maskrcnn & cpm
-Our method managed to use a hybrid model in the detection section. ResNet-101 with FPN generates RoIs in multiple scales. After paralleled RPN consuming feature from different size, we applied pyramid RoI align layer to produce feature maps regarding to the object's size. Regression head is designed here to output accurate bounding boxes which help mask and key-point branch to generate coarse predictions. The mask and key-point branch are paralleled in the architecture. Coarse mask branch uses 4 convolution layers with kernel size of 3, followed by a transposed convolution layer with stride 2 and kernel size 2.
+本文在特征提取部分使用了101层的残差网络与特征金字塔网络来生成不同尺度的特征图供检测部分使用。正如Mask R-CNN\cite{He2017Mask}中使用的结构，本文也设计了并行的区域建议网络，在经过回归分支后从不同尺度的特征图上得到来自不同尺度的边界框。这些尺度不同的边界框会根据其来源送入专为特征金字塔网络设计的兴趣区域对齐层，根据公式选定对应的层数来裁剪并对齐特征图\cite{Lin2016Feature}。这样裁剪下来的特征图具有相对平衡的感受野：小尺寸物体有较小的感受野大小，同时大尺寸物体会获得更大的感受野大小。
 
-\begin{figure*}[htbp]
-	\centering
-	\includegraphics[scale=0.65]{RefineNet.pdf}
-	\caption{Details of RefineNet}
-	\label{fig:RefineNet}
-\end{figure*}
+检测部分是由两个并行的分支组成的。实例分割与姿态估计分支分别使用裁剪好的特征得到粗略的实例分割结果与姿态估计结果。分割分支的网络结构使用了四层卷积核大小为3像素的卷积层，和一层步长为2，卷积核大小为2的空洞卷积层。同样的，姿态估计分支使用了五层卷积核大小为3的卷积层，最终的输出被两层1x1卷积调整至关键点外加背景个通道，以得到每个关键点的热力图。
+
 
 %   Training strategy description
 %	Section 1
-In the training process, as we designed the network into two sections, the global loss function is also defined as a combination of two separated loss \eqref{detection_loss}. For the first section we train the network to learn how to extract instance positions, coarse mask and key-point predictions. So we defined the loss function in a R-CNN fashion, calculating distance between prediction confidence and labels using cross entropy over softmax gate. To train the network to predict coarse mask, a cross entropy is also defined here to get masks of three classes \eqref{bbox_mask_loss}. And the loss in key-point branch is defined as naive mean square error function \eqref{coarse_key-point_loss}.
+在检测部分的监督过程中，由于我们将网络设计为能够完成两个任务的并行的分支，所以该部分的损失函数设计就表现为两个损失函数加和的形式，如公式\eqref{detection_loss}所示。首先我们需要对目标位置检测进行监督，所以我们就借鉴区域卷积神经网络\cite{Girshick_2014_CVPR}中损失函数设计思路，使用交叉熵来计算预测标签与真实标签之间的距离。同样的，如Mask R-CNN\cite{He2017Mask}中的损失函数设计，交叉熵也被用来监督实例分割。公式\eqref{bbox_mask_loss}描述目标检测与实例分割的损失函数设计。姿态估计分支的损失函数被定义为均方差的形式，如公式\eqref{coarse_key-point_loss}所示。
 
 \begin{equation}
 %	section 1 loss
@@ -70,6 +81,9 @@ L_{key-point_{reg}} = -\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*
 %		b) inference process 
 %			(i)		attention-like instance segmentation
 %Size of reception field is crucial to the refine section, as the key-point branch need them to avoiding the wrong decision in 
+融合优化阶段由数个完全一样的优化模块组成，每个模块可以被抽象地定义为公式\eqref{def:refinenet}。
+% TODO: bookmark in chapter 03
+
 The refine section is divided into 5 seperated stages, and each part can be denoted as equation\eqref{def:refinenet}, to be more in detail, the network can be defined as below:
 \begin{equation}
 c = C({f}\otimes{K_{t-1}})
@@ -83,6 +97,8 @@ K_t = H_k(c\odot a)
 \begin{equation}
 M_t = H_m(F(c) \oplus a)
 \end{equation}
+第一份拷贝会首先与来自阶段$t-1$的姿态结果$K_{t-1}$进行合并，并一同被送入一组\textit{Shared Convolution Layers}中。第二份拷贝同样会与上一阶段的实例分割结果$S_{t-1}$进行合并，并被输入至\textit{Attention Converter}中。经过\textit{Shared Convolution Layers}的特征图会与\textit{Attention Converter}中$\sigma$门生成的注意力热图相乘。最终输出对关键点估计优化的结果$K_t$。同时\textit{Shared Convolution Layers}的特征图的另一份拷贝在经过两层卷积层后，会与\textit{Attention Converter}中$\tanh$门的输出相加，输出对实例分割的优化结果$S_t$。
+
 where $\otimes$ refers to concatenating operation, $\odot$ for bit-wise multiply, and $\oplus$ is for bit-wise add operation. $M_t$ and $K_T$ denote the mask and key-point prediction from stage $t$. The feature map is denoted as $f$, and $a$ is for attention, $c$ is for the output from the shared convolution layers. In notations for modules, $C$ is for shared convolution layers, $A$ is for attention converter, and $F$ is for the fusion module. $H_k$ is for the key-point head, and the $H_m$ is for mask head.\\
 It is common to generate attention using a given feature from last stage, and we suppose that the instance segmentation prediction, still can be treated as a strong cue to the soft attention. Therefore, our method proposed a attention converter to digest features and mask prediction from last stage to generate proper attention to the network.\\
 However, the attention may be incompatible for a multi-staged architecture to supervise. Hence, a single layered mask head is designed here to adjust the dimension to the binary mask, which makes it easier to define losses to the attention. In another hand, like other the traditional multi-tasking networks, our method also employs a separated head which accepts features from a shared convolution to use the common priors which are used by the key-point prediction. To hybrid those two idea in the design of networks, we proposed the refine stage which is shown in Fig.\ref{fig:RefineNet}.\\

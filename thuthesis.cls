@@ -231,9 +231,9 @@
          UprightFont = * Light,
             BoldFont = * Bold,
     ]{Songti SC}
-  \setCJKfamilyfont{zhhei}[BoldFont=* Bold]{Heiti SC}
+  \setCJKfamilyfont{zhhei}[AutoFakeBold]{Heiti SC}
   \setCJKfamilyfont{zhkai}[BoldFont=* Bold]{Kaiti SC}
-  \setCJKfamilyfont{zhli}[BoldFont=* Bold]{LiSu}
+  \setCJKfamilyfont{zhli}[AutoFakeBold]{LiSu}
   \newcommand*{\lishu}{\CJKfamily{zhli}}
   \xeCJKsetwidth{‘’“”}{1em}
 }{}
