@@ -81,27 +81,36 @@ L_{key-point_{reg}} = -\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*
 %		b) inference process 
 %			(i)		attention-like instance segmentation
 %Size of reception field is crucial to the refine section, as the key-point branch need them to avoiding the wrong decision in 
-融合优化阶段由数个完全一样的优化模块组成，每个模块可以被抽象地定义为公式\eqref{def:refinenet}。
-% TODO: bookmark in chapter 03
+融合优化阶段由数个完全一样的优化模块组成，每个模块可以被抽象地定义为公式\eqref{def:refinenet}。首先，优化模块会把输入的特征分为两部分。第一份拷贝$f$会首先与来自阶段$t-1$的姿态结果$K_{t-1}$进行合并，并一同被送入一组共享的卷积层$C$中，得到姿态特征图$c$，如公式\eqref{def:sharedconv}\footnote{公式中的$\otimes$代表张量连接操作。}。第二份特征图拷贝$f$同样会与上一阶段的实例分割结果$S_{t-1}$进行合并，并被输入至注意力转换模块$A$中，得到注意力特征图$a$，如公式\cite{def:attenconverter}\footnote{公式中的$\odot$代表张量内积操作。}。像公式\eqref{def:keypointhead}所描述，之后姿态特征图$c$会与经过$\sigma$门\footnote{$\sigma$门由一组神经层和一个$sigmoid$激活函数组成，会将网络输出限制在$[0,1]$的值域中}重新映射的注意力$a$相乘，经过姿态子网$H_k$的调整，最终输出关键点预测结果$K_t$。这样的设计让网络能够根据实例分割的结果生成注意力，让网络根据生成的注意力$a$生成更加鲜明的姿态估计结果。
 
-The refine section is divided into 5 seperated stages, and each part can be denoted as equation\eqref{def:refinenet}, to be more in detail, the network can be defined as below:
 \begin{equation}
-c = C({f}\otimes{K_{t-1}})
+\label{def:sharedconv}
+c = C(f\otimes{K_{t-1}})
 \end{equation}
 \begin{equation}
+\label{def:attenconverter}
 a = A(f\otimes{M_{t-1}})
 \end{equation}
 \begin{equation}
-K_t = H_k(c\odot a)
+\label{def:keypointhead}
+K_t = H_k(c\odot \sigma(a))
 \end{equation}
-\begin{equation}
-M_t = H_m(F(c) \oplus a)
-\end{equation}
-第一份拷贝会首先与来自阶段$t-1$的姿态结果$K_{t-1}$进行合并，并一同被送入一组\textit{Shared Convolution Layers}中。第二份拷贝同样会与上一阶段的实例分割结果$S_{t-1}$进行合并，并被输入至\textit{Attention Converter}中。经过\textit{Shared Convolution Layers}的特征图会与\textit{Attention Converter}中$\sigma$门生成的注意力热图相乘。最终输出对关键点估计优化的结果$K_t$。同时\textit{Shared Convolution Layers}的特征图的另一份拷贝在经过两层卷积层后，会与\textit{Attention Converter}中$\tanh$门的输出相加，输出对实例分割的优化结果$S_t$。
 
-where $\otimes$ refers to concatenating operation, $\odot$ for bit-wise multiply, and $\oplus$ is for bit-wise add operation. $M_t$ and $K_T$ denote the mask and key-point prediction from stage $t$. The feature map is denoted as $f$, and $a$ is for attention, $c$ is for the output from the shared convolution layers. In notations for modules, $C$ is for shared convolution layers, $A$ is for attention converter, and $F$ is for the fusion module. $H_k$ is for the key-point head, and the $H_m$ is for mask head.\\
-It is common to generate attention using a given feature from last stage, and we suppose that the instance segmentation prediction, still can be treated as a strong cue to the soft attention. Therefore, our method proposed a attention converter to digest features and mask prediction from last stage to generate proper attention to the network.\\
-However, the attention may be incompatible for a multi-staged architecture to supervise. Hence, a single layered mask head is designed here to adjust the dimension to the binary mask, which makes it easier to define losses to the attention. In another hand, like other the traditional multi-tasking networks, our method also employs a separated head which accepts features from a shared convolution to use the common priors which are used by the key-point prediction. To hybrid those two idea in the design of networks, we proposed the refine stage which is shown in Fig.\ref{fig:RefineNet}.\\
+由注意力转换模块生成的注意力特征图$a$，不光会影响关键点预测的结果$K_t$，还会影响实例分割的结果$S_t$。如公式\eqref{def:fusion}所示，首先网络会利用来自共享卷积层的姿态特征图$c$生成一组供实例分割使用的特征图。这组特征图接下来会与经过$\tanh$门\footnote{$\tanh$门由一组神经层和一个$\tanh$激活函数组成，会将网络输出限制在$[-1, 1]$的值域中。}调整的注意力$a$相加，融合了来自注意力转换模块的信息，共同送入分割子网$H_s$得到最终优化的分割结果$S_t$。
+
+\begin{equation}
+\label{def:fusion}
+S_t = H_s(F(c) \oplus \tanh(a))
+\end{equation}
+
+% TODO: bookmark in chapter 03
+本文在选取注意力的表现形式时，使用了软注意力作为交替优化中媒介。实际上，实例分割的结果可以被当做一种注意力。因为使用分割结果在网络后处理阶段直接进行点乘处理，也就是在关键点热图使用分割结果做遮罩操作，在简单的融合实例分割信息的多人姿态估计策略中是很常见的。这种处理就相当于强化了对应空间位置的热图相应，也就是与注意力的机理是相似的。虽然实例分割也是网络自生成的结果，但由于其并不能完全满足多人姿态估计的要求，那么单独设计的使用实例分割信息监督影响的注意力就显得非常重要了。另外，实例分割结果是二值化图像，相当于一种硬注意力。与软注意力相比，硬注意会直接消除特征图对应位置的特征相应，损失了很多网络预测关键点位置所依赖的特征。并且这样使用硬注意力的系统会受限制于硬注意力本身，一旦生成的硬注意力不准确，就会在像姿态估计这种对于精确度要求很高的任务上失败。这说明软注意力在完成任务的目标上是必须的。
+
+本文提出的优化模块主要可以让两个任务互相交替优化：第一，姿态估计会想实例分割提供特征图，优化实例分割结果，如公式\eqref{def:fusion}。第二就是来自实例分割的特征会融合进入姿态子网对姿态估计结果进行优化，如公式\eqref{def:keypointhead}。这两个优化的过程是通过我们引入的软注意力来实现的，也就是说软注意力在结构上也是必须的。
+
+正如上文所言，实例分割的监督信息没有办法完全满足多人姿态估计的要求。因为实例分割监督信息不会考虑遮挡情况下的躯干边界。也就是说，如果使用了实例分割结果的监督信息来监督网络自生成的注意力，就难以完成最初设计的帮助网络在有遮挡情况下区分不同人的躯干边界的目标了。因此，在这样的结构下，我们需要更加宽松的约束来监督注意力的生成。所以，这就是本文为何要引入弱监督的注意力来帮助网络关注特定区域的原因。
+
+However, the attention may be incompatible for a multi-staged architecture to supervise. Hence, a single layered mask head is designed here to adjust the dimension to the binary mask, which makes it easier to define losses to the attention. In another hand, like other the traditional multi-tasking networks, our method also employs a separated head which accepts features from a shared convolution to use the common priors which are used by the key-point prediction. To hybrid those two idea in the design of networks, we proposed the refine stage which is shown in Fig.\ref{fig:RefineNet}.
 
 \subsection{损失函数定义}
 \label{subsec:lossfunctions}
