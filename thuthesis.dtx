@@ -2135,6 +2135,7 @@
 % \changes{v4.4}{2008/06/04}{调整段前距为 -12bp 而不是原来的 -16bp。}
 % \changes{v5.5.1.BJUT.01}{2019/04/27}{更改章节标题到小二，另外之后微调章节格式都在这里}
 % \changes{v5.5.1.BJUT.02}{2019/04/29}{标题字体加粗且切换为宋体}
+% \changes{v5.5.1.BJUT.04}{2019/05/06}{二级标题字体错误，换为四号}
 % \end{description}
 %    \begin{macrocode}
 \newcommand\thu@chapter@titleformat[1]{%
@@ -2168,7 +2169,7 @@
     afterindent=true,
     beforeskip={\ifthu@bachelor 12bp\else 16bp\fi\@plus 1ex \@minus .2ex},
     afterskip={6bp \@plus .2ex},
-    format={\songti\ifthu@bachelor\xiaosan[1.25]\bfseries\else\banxiaosi[1.538]\fi},
+    format={\songti\ifthu@bachelor\sihao[1.25]\bfseries\else\banxiaosi[1.538]\fi},
     numberformat={\songti\ifthu@bachelor\sihao[1.154]\bfseries\else\banxiaosi[1.538]\fi},
   },
   subsubsection={
@@ -2288,15 +2289,16 @@
 % 汉字符，二级节标题行缩进 2 个汉字符（但示例文件中为 1.5 个汉字符）。本科生指
 % 南中未作明确规定，示例文件中对于一级和二级节标题分别缩进 1 和 1.5 个汉字符。
 % \changes{v5.0.0}{2015/04/28}{修正学位论文中目录里节前缩进(\#103)}
+% \changes{v5.5.1.BJUT.04}{2019/05/06}{根据论文模板更新目录缩进}
 %    \begin{macrocode}
 % \patchcmd{\@dottedtocline}{#4}{\csname thu@toc@font\endcsname #4}{}{}
 \patchcmd{\@dottedtocline}{\hb@xt@\@pnumwidth}{\hbox}{}{}
 \renewcommand*\l@section{%
-  \@dottedtocline{1}{\ccwd}{2.1em}}
+  \@dottedtocline{1}{2\ccwd}{2.1em}}
 \renewcommand*\l@subsection{%
-  \@dottedtocline{2}{\ifthu@bachelor 1.5\ccwd\else 2\ccwd\fi}{3em}}
+  \@dottedtocline{2}{\ifthu@bachelor 4\ccwd\else 2\ccwd\fi}{3em}}
 \renewcommand*\l@subsubsection{%
-  \@dottedtocline{3}{\ifthu@bachelor 2.4em\else 3.5em\fi}{3.8em}}
+  \@dottedtocline{3}{\ifthu@bachelor 6\ccwd\else 3.5em\fi}{3.8em}}
 %    \end{macrocode}
 % \end{macro}
 %

@@ -551,7 +551,7 @@
     afterindent=true,
     beforeskip={\ifthu@bachelor 12bp\else 16bp\fi\@plus 1ex \@minus .2ex},
     afterskip={6bp \@plus .2ex},
-    format={\songti\ifthu@bachelor\xiaosan[1.25]\bfseries\else\banxiaosi[1.538]\fi},
+    format={\songti\ifthu@bachelor\sihao[1.25]\bfseries\else\banxiaosi[1.538]\fi},
     numberformat={\songti\ifthu@bachelor\sihao[1.154]\bfseries\else\banxiaosi[1.538]\fi},
   },
   subsubsection={
@@ -621,11 +621,11 @@
   \fi}
 \patchcmd{\@dottedtocline}{\hb@xt@\@pnumwidth}{\hbox}{}{}
 \renewcommand*\l@section{%
-  \@dottedtocline{1}{\ccwd}{2.1em}}
+  \@dottedtocline{1}{2\ccwd}{2.1em}}
 \renewcommand*\l@subsection{%
-  \@dottedtocline{2}{\ifthu@bachelor 1.5\ccwd\else 2\ccwd\fi}{3em}}
+  \@dottedtocline{2}{\ifthu@bachelor 4\ccwd\else 2\ccwd\fi}{3em}}
 \renewcommand*\l@subsubsection{%
-  \@dottedtocline{3}{\ifthu@bachelor 2.4em\else 3.5em\fi}{3.8em}}
+  \@dottedtocline{3}{\ifthu@bachelor 6\ccwd\else 3.5em\fi}{3.8em}}
 \def\thu@def@term#1{%
   \define@key{thu}{#1}{\csname #1\endcsname{##1}}
   \expandafter\gdef\csname #1\endcsname##1{%
