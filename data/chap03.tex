@@ -1,8 +1,8 @@
-\chapter{基于弱监督注意力的多人姿态估计方法}
+\chapter{融合实例分割的多人姿态估计方法}
 \label{cha:method}
 本章主要介绍和陈述基于弱监督注意力的多人姿态估计方法的网络设计，监督方法，以及整体方法的设计思路。在\ref{sec:methodoverview}中，文章主要关注于整体性的结构，大致划分网络的布局。在\ref{sec:detectionstage}中，本文主要描述检测部分网络的设计细节。本章主要部分为\ref{sec:refine}，在本节，文章会陈述本文提出的新结构，优化模块的设计思路以及设计细节。通过陈述弱监督与注意力的关系来解释网络结构设计的原则。在最后的\ref{sec:lossfunctions}中，文章会说明网络监督的策略以及损失函数定义。
 
-\section{概述}
+\section{方法框架}
 \label{sec:methodoverview}
 %   This part intends to state the overall idea
 本方法使用基于残差网络\footnote{残差网络，简称ResNet, 全称Residual Network}与特征金字塔网络\footnote{特征金字塔网络，简称FPN, 全程Feature Pyramid Network}结构的网络框架作为特征提取的骨架，为模型提供各个尺度的特征图。在特征提取部分之后，网络可以分为目标检测与姿态估计和融合回归两个步骤。在目标检测与姿态估计过程中，网络预测出目标的边界框，粗略的关键点预测和实例分割结果。而在融合回归部分，网络会接受从目标检测与姿态估计阶段产生的结果并将它们一同以一定的方式互相交汇并一起回归。而且，在融合回归的过程中，网络采取了多阶段的堆叠和中继监督的策略来共同精炼关键点与实例分割的结果。这种结构是受到CPM\cite{wei2016convolutional}的启发而设计的。同时，为了有效地融合实例分割与姿态估计的结果，网络使用了注意力机制，使其根据实例分割的生成注意力关注网络对应的区域，从而达到方法最初设计的目的，也就是解决多人检测下姿态遮挡的问题。同时，考虑到姿态估计的信息对实例分割也有促进作用，本文设计了双流的网络结构让模型在每个阶段都能同时预测分割结果和姿态估计结果，并送入下一阶段继续优化。网络的整体结果如图\ref{fig:Overall}
@@ -14,7 +14,7 @@
 
 \begin{figure*}[htbp]	
 	\centering
-	\includegraphics[scale=0.4]{network.eps}
+	\includegraphics[scale=0.4]{network.pdf}
 	\caption{网络整体结构}
 	\label{fig:Overall}
 \end{figure*}
@@ -31,19 +31,16 @@ M_t, K_t = R(M_{t-1}\otimes f_k, K_{t-1}\otimes f_k)
 %   This part is to describe why we use a hybrid multi-stage arch
 %	1. mask and key-point detection is associated
 %	2. In crowd, the heatmap is not robust to predict
-本方法使用了多阶段、利用弱监督约束的注意力的结构，同时优化实例分割与姿态估计的结果。首先多阶段与中继监督这两个设计可以让网络获得更大的感受野，让网络能够充分学习关键点之间的关系\cite{wei2016convolutional}。其次，由于实例分割和姿态估计是联系紧密的两个任务， 正如本文\ref{sec:generalmotivation}中提到的，实例分割与姿态估计能够相互优化，并且有相当大的相关性。所以这样设计的结构主要是希望能够同时优化姿态估计与实例分割结果。通过引入注意力以及弱监督这种较宽松约束下的可学习参数，网络能够更加适应数据中的不同表现。这让网络在一些实例分割无法正确引导关键点检测的情况下， 仍然能够生成较为正确的注意力引导关键点的检测与人体骨架的重建。
+本方法使用了多阶段、利用弱监督约束的注意力的结构，同时优化实例分割与姿态估计的结果。首先多阶段与中继监督这两个设计可以让网络获得更大的感受野，让网络能够充分学习关键点之间的关系\cite{wei2016convolutional}。其次，由于实例分割和姿态估计是联系紧密的两个任务，实例分割与姿态估计能够相互优化，并且有相当大的相关性。所以这样设计的结构主要是希望能够同时优化姿态估计与实例分割结果。通过引入注意力以及弱监督这种较宽松约束下的可学习参数，网络能够更加适应数据中的不同表现。这让网络在一些实例分割无法正确引导关键点检测的情况下， 仍然能够生成较为正确的注意力引导关键点的检测与人体骨架的重建。
 
-\begin{figure*}[htbp]	
-	\centering
-	\includegraphics[scale=0.65]{RefineNet.pdf}
-	\caption{融合优化模块具体设计}
-	\label{fig:RefineNet}
-\end{figure*}
-
-\section{实例分割与姿态估计}
+\section{检测部分}
 \label{sec:detectionstage}
 %	Structure description
 %	1. Hybrid arch of maskrcnn & cpm
+\subsection{特征提取}
+\label{subsec:featextract}
+\subsection{目标检测回归}
+\label{subsec:detection}
 本文在特征提取部分使用了101层的残差网络与特征金字塔网络来生成不同尺度的特征图供检测部分使用。正如Mask R-CNN\cite{He2017Mask}中使用的结构，本文也设计了并行的区域建议网络，在经过回归分支后从不同尺度的特征图上得到来自不同尺度的边界框。这些尺度不同的边界框会根据其来源送入专为特征金字塔网络设计的兴趣区域对齐层，根据公式选定对应的层数来裁剪并对齐特征图\cite{Lin2016Feature}。这样裁剪下来的特征图具有相对平衡的感受野：小尺寸物体有较小的感受野大小，同时大尺寸物体会获得更大的感受野大小。
 
 检测部分是由两个并行的分支组成的。实例分割与姿态估计分支分别使用裁剪好的特征得到粗略的实例分割结果与姿态估计结果。分割分支的网络结构使用了四层卷积核大小为3像素的卷积层，和一层步长为2，卷积核大小为2的空洞卷积层。同样的，姿态估计分支使用了五层卷积核大小为3的卷积层，最终的输出被两层1\times1卷积调整至关键点外加背景个通道，以得到每个关键点的热力图。
@@ -54,13 +51,21 @@ M_t, K_t = R(M_{t-1}\otimes f_k, K_{t-1}\otimes f_k)
 
 在检测部分中，由于分支都是一并行方式计算的，所以两个任务并不会在最后一部分进行融合。这一部分的作用相当于为接下来的融合优化提供一个更好的初始状态。像CPM\cite{wei2016convolutional}一样，网络在优化的第一阶段，也就是本文中提到检测部分，都是用了不一样设置来得到初始的姿态估计结果。
 
-\section{融合优化}
+\section{融合优化网络}
 \label{sec:refine}
 本文在融合优化阶段提出了新结构，以完成融合实例分割与姿态估计两个任务。新的结构引入了软注意力来强化对应区域的特征响应，从而优化网络在遮挡情况下对于单人结构的理解。并且软注意力还会用来增强实例分割的特征表达，将分割信息在模块间相互传递并优化。
-\subsection{网络结构}
+\subsection{优化模块结构设计}
 \label{subsec:architecture}
 
 整个网络的设计有两个目标，一个是将多任务的每个分支的信息从当前阶段传递到下一个阶段；另一个目标是网络应该有较好的融合方法让两个任务的特征。对于第一个目标，网络结构在每个分支都设计了传递的结构，以增强每个阶段在现有结果上优化的能力；其次，本文对于两个任务特征融合也对应设计了融合方法以达到交叉优化的目标。所以本文提出了涉及了多个拥有相同结构的优化模块多阶段地融合关键点信息与分割信息以增强姿态估计与实例分割的最终结果。
+
+\begin{figure*}[htbp]	
+	\centering
+	\includegraphics[scale=0.65]{RefineNet.pdf}
+	\caption{融合优化模块具体设计}
+	\label{fig:RefineNet}
+\end{figure*}
+
 
 %	TODO: more detailed content to discuss the net structure in refine section
 %	1. What the network looks like
@@ -99,7 +104,7 @@ S_t = H_s(F(c) \oplus \tanh(a))
 
 为了设计更加合适的约束，算法应该同时监督每个阶段优化模块的两个输出：实例分割结果$S$与姿态估计结果$K$。本文希望通过显式监督两个现有任务的方式，内隐地得到适合数据的注意力的生成方式。由于现在对于实例分割与姿态估计两个任务的监督方法已经相当成熟，所以这两个监督信息应该能够提供足够的约束来得到能够有较强语义的空间注意力。
 
-\subsection{弱监督与软注意力}
+\subsection{弱监督与注意力机制}
 \label{subsec:weaksuper_attention}
 
 %	TODO: fit the <Attention is all you need> thread into this section
@@ -114,8 +119,10 @@ S_t = H_s(F(c) \oplus \tanh(a))
 在如何将注意力携带的传递到下一阶段的方案上，本文的最初目的就是改善本阶段的特征表达，以生成更好地实例分割结果。之所以在这个位置设计$\tanh$门来调整输出范围，是因为注意力不光能够影响特征注意区域，也能够帮助特征强化对应位置。另外，最终生成的经过$\tanh$门映射的注意力$a_t$也携带着上一阶段的信息，因此也是有必要将这一部分信息与生成的实例分割特征融合。于是本文希望借助一个变型的残差网络，使用张量加法将生成的注意力$a_t$融合输入到分割子网，得到了最终的实例分割结果。
 
 
-\section{损失函数定义及训练策略}
-\label{sec:lossfunctions}
+\section{网络训练}
+\label{sec:training}
+\subsection{损失函数}
+\label{subsec:lossfuntion}
 %	Section 2 Training
 %	key-point Loss
 %	Why Applying masks after 1x1 conv?
@@ -129,7 +136,7 @@ S_t = H_s(F(c) \oplus \tanh(a))
 \begin{equation}
 %	section 1 loss
 \label{detection_loss}
-L_{detection} = \beta L_{bbox_{reg}} + \alpha L_{mask_{reg}} + L_{key-point_{reg}}
+L_{total} = \beta L_{bbox_{reg}} + \alpha L_{mask_{reg}} + L_{key-point_{reg}}
 \end{equation} 
 \begin{equation}
 %	bbox & mask regression loss
@@ -144,6 +151,12 @@ L_{mask_{reg}} &= -\sum_{t=1}^{T}\sum_{c \in C}{\hat{s_c} \log{s_c^{*}}}
 \label{key-point_loss}
 L_{keypoint_{reg}} = \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*} \right\|_2}
 \end{equation}
+
+\subsection{梯度计算}
+\label{subsec:gradient}
+
+\subsection{训练策略}
+\label{subsec:trainingstrategy}
 
 本文使用了两阶段的训练策略来监督整个网络。在第一阶段，先训练检测部分使用对应部分的损失函数进行训练至大致收敛，接着加入融合优化部分的多阶段优化模块使用整体损失函数进行监督。在第一阶段的检测网络训练策略上，仅针对目标检测损失函数进行训练，学习率为0.05，并采取学习率阶梯下降的方法，间隔30代下降一次学习率，每次下降的系数为0.5。在样本批为8的设定下整体训练120代，其中代长为1000步。在第二阶段的训练中，训练策略主要倾向于优化融合优化的部分。对网络整体损失函数的学习率被设定为0.0005，间隔60代下降一次学习率，学习率下降策略同样采取阶梯式，每次下降系数为0.333。网络在批大小为1的条件下整体训练200代，其中代长为1000步。
 

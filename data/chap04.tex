@@ -1,10 +1,16 @@
-\chapter{论证与实验}
+\chapter{实验验证与分析}
 \label{cha:exp}
 为了证明方法的有效性，我们完成了一些实验来证明我们提出的弱监督下的注意力以及其对应的网络结构能够较好地解决多人遮挡的问题。
-\section{结构效能验证}
-\label{sec:ablation}
+\section{数据集与评价指标}
+\label{sec:dataset}
 为了验证在\ref{sec:refine}节中提出的网络结构，我们设计了两个性能对比实验。在实验中我们使用了COCO开放验证数据集\cite{lin2014microsoft}作为我们验证的数据集。在验证的时候，我们使用了平均精确度与关键点命中概率曲线\cite{andriluka20142d}作为评价指标。这两种评价指标都是旨在统计一定容忍度下的关键点命中情况。与PCK评价指标的曲线不同，mAP尝试使用积分来给出具体的一个数值来评判姿态估计方法的性能。
-\subsection{自对比效能实验}
+\section{性能对比}
+\label{sec:perfcompare}
+\section{自对比实验与分析}
+\label{sec:ablation}
+\subsection{自对比策略}
+\label{subsec:selfstrategy}
+\subsection{自对比性能实验}
 \label{subsec:selfeval}
 我们设计了三种自对比的网络结构策略：
 \begin{itemize}
@@ -38,9 +44,6 @@
 
 组图x是使用PCK评价方法在COCO数据集上评价的结果。可以看到，在使用全部策略时，模型的性能全部优于其他策略的性能。
 %TODO：PCK组图
-
-\subsection{性能比较}
-\label{subsec:perf}
 我们选取了几种现代多人姿态估计算法来评价指标。
 % TODO: 比较表格
 \begin{longtable}[c]{c*{6}{r}}
@@ -64,24 +67,19 @@
 	\bottomrule[1.5pt]
 \end{longtable}
 
-\section{关于弱监督关注力}
+\subsection{注意力可视化}
 \label{sec:weaksuperatten}
 本文将网络中输出的空间注意力可视化，并于原图混合得到了最终可视化的结果。
-\subsection{实验结果}
 % TODO: 结果效果图
 \label{subsec:attenexp}
 \begin{figure}
-	\begin{subfigure}
-		\begin{minipage}{0.333\textwidth}
-			\includegraphics[height=3cm]{872_insid0_stage2.PNG}
-		\end{minipage}
-		\begin{minipage}{0.333\textwidth}
-			\includegraphics[height=3cm]{872_insid0_stage2.PNG}
-		\end{minipage}
-		\begin{minipage}{0.333\textwidth}
-			\includegraphics[height=3cm]{872_insid0_stage2.PNG}
-		\end{minipage}
-	\end{subfigure}
+	\begin{minipage}{\textwidth}
+		被遮挡
+		\centering
+		\includegraphics[height=3cm]{872_insid0_stage2.PNG}
+		\includegraphics[height=3cm]{872_insid0_stage3.PNG}
+		\includegraphics[height=3cm]{872_insid0_stage4.PNG}
+	\end{minipage}
 	\vskip0.2cm
 	\begin{minipage}{\textwidth}
 		遮挡
@@ -101,9 +99,6 @@
 	\caption{并排第一个图}
 \end{figure}
 
-\subsection{作用分析}
-\label{subsec:attenstudy}
-
 \section{研究展望}
 \label{sec:future}
 由于时间有限，本文还有一些后续的研究展望希望在之后之后的工作中继续完善本文提出的网络结构。
@@ -112,3 +107,5 @@
 近年来长短时记忆(LSTM)
 \subsection{基于姿态估计后目标检测}
 \label{subsec:semisuperdetect}
+
+\section{本章小结}

@@ -271,3 +271,7 @@ TSWLatexianTemp*
 
 # standalone packages
 *.sta
+
+
+# original figures
+figures/origin
