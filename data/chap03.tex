@@ -110,11 +110,11 @@ a = A(f\otimes{M_{t-1}})
 K_t = H_k(c\odot \sigma(a))
 \end{equation}
 
-由注意力转换模块生成的注意力特征图$a$，不光会影响关键点预测的结果$K_t$，还会影响实例分割的结果$M_t$。如公式\eqref{def:fusion}所示，首先网络会利用来自共享卷积层的姿态特征图$c$经过一组3\times3卷积层$F$生成一组供实例分割使用的特征图。这组特征图接下来会与经过$\tanh$门\footnote{$\tanh$门由一组神经层和一个$\tanh$激活函数组成，会将网络输出限制在$[-1, 1]$的值域中。}调整的注意力$a_t$相加，融合了来自注意力转换模块的信息，共同送入分割子网$H_s$得到最终优化的分割结果$M_t$。
+由注意力转换模块生成的注意力特征图$a$，不光会影响关键点预测的结果$K_t$，还会影响实例分割的结果$M_t$。如公式\eqref{def:fusion}所示，首先网络会利用来自共享卷积层的姿态特征图$c$经过一组3\times3卷积层$F$生成一组供实例分割使用的特征图。这组特征图接下来会与经过$\tanh$门\footnote{$\tanh$门由一组神经层和一个$\tanh$激活函数组成，会将网络输出限制在$[-1, 1]$的值域中。}调整的注意力$a_{\tanh}$相加，融合了来自注意力转换模块的信息，共同送入分割子网$H_s$得到最终优化的分割结果$M_t$。
 
 \begin{equation}
 \label{def:fusion}
-S_t = H_s(F(c) \oplus \tanh(a))
+M_t = H_m(F(c) \oplus \tanh(a))
 \end{equation}
 
 总而言之，网络的整体设计可以被概括为两部分：传递与交叉。姿态估计的传递方法很简单，是直接经过特征图传递的。但在传递实例分割信息的时候，过程就稍显复杂一些：网络使用从注意力调整模块生成的注意力$a_k$，与从姿态估计分支得到的特征图相加而完成对分割信息的多阶段传递。经过加和的部分同样会被注意力强化，只不过相比于乘性强化而言，加性强化并不会减弱特征信息的表达，仅仅是完成了特征的融合。因为在实例分割部分，我们并不希望减弱对应区域的特征，而仅仅希望是引入上一阶段的结果信息而已。
@@ -135,7 +135,7 @@ S_t = H_s(F(c) \oplus \tanh(a))
 
 然而对于第二点而言，直接引入实例分割的监督信息没有办法完全满足多人姿态估计的要求。因为实例分割监督信息不会考虑遮挡情况下的躯干边界。也就是说，如果使用了实例分割结果的监督信息来监督网络自生成的注意力，就难以完成最初设计的帮助网络在有遮挡情况下区分不同人的躯干边界的目标了。同时，现有的数据难以重新标定以满足现有的需求，因为人通过估计得到被遮挡躯干的轮廓不光要消耗比简单分割标定更多的时间，还会因为这个任务过强的主观性导致标定数据的偏差很大，难以获得较为稳定的标定结果。这回导致网络无法在这样标定的数据下很好地收敛。因此，在这样的情况下，网络需要更加宽松的约束来监督注意力的生成。所以，这就是本文为何要引入弱监督的注意力来帮助网络关注特定区域的原因。
 
-在如何将注意力携带的传递到下一阶段的方案上，本文的最初目的就是改善本阶段的特征表达，以生成更好地实例分割结果。之所以在这个位置设计$\tanh$门来调整输出范围，是因为注意力不光能够影响特征注意区域，也能够帮助特征强化对应位置。另外，最终生成的经过$\tanh$门映射的注意力$a_t$也携带着上一阶段的信息，因此也是有必要将这一部分信息与生成的实例分割特征融合。于是本文希望借助一个变型的残差网络，使用张量加法将生成的注意力$a_t$融合输入到分割子网，得到了最终的实例分割结果。
+在如何将注意力携带的传递到下一阶段的方案上，本文的最初目的就是改善本阶段的特征表达，以生成更好地实例分割结果。之所以在这个位置设计$\tanh$门来调整输出范围，是因为注意力不光能够影响特征注意区域，也能够帮助特征强化对应位置。另外，最终生成的经过$\tanh$门映射的注意力$a_{\tanh}$也携带着上一阶段的信息，因此也是有必要将这一部分信息与生成的实例分割特征融合。于是本文希望借助一个变型的残差网络，使用张量加法将生成的注意力$a_{\tanh}$融合输入到分割子网，得到了最终的实例分割结果。
 
 
 \section{网络训练}
@@ -150,29 +150,75 @@ S_t = H_s(F(c) \oplus \tanh(a))
 %		rather than enhance the result
 %			--> This will give more responses
 
-本文监督网络的损失函数可以被分为三部分：边界框损失函数、关键点分支损失函数与实例分割损失函数，如公式\eqref{detection_loss}。为了平衡每个分支的收敛速率，本文设计了$\beta$和$\alpha$分别控制目标检测与实例分割的损失函数权重。对于目标检测监督与实例分割监督而言，损失函数的设计与选择已经相当成熟。如公式\eqref{bbox_mask_loss}所示，损失函数在这里使用了交叉熵来度量真实标签与预测向量的差距。只不过与目标检测的损失函数$L_{bbox_{reg}}$定义不一样，实例分割的损失函数$L_{mask_{reg}}$是以多阶段中继监督的形式体现出来的。在本文的实验中为了方便操作，暂时将$\beta$设置为0，$\alpha$设置为0.05来弱化实例分割对于网络整体训练的影响。本文使用了加入中级监督的类似L2范数形式来定义姿态估计分支的损失函数\eqref{key-point_loss}。对于优化模块而言，实例分割与姿态估计两个的任务的损失函数会同时作用于网络自生成的注意力上。这样既能够达到本文最初训练能够完成多任务的优化模块的目标，又能够让网络得到一个更加适应数据的注意力。而通过这样的监督方法，也希望能够证明，适应数据的注意力也能够在语义性上具有较强的可解释性。
+本文监督网络的损失函数可以被分为三部分：边界框损失函数、关键点分支损失函数与实例分割损失函数，如公式\eqref{detection_loss}。为了平衡每个分支的收敛速率，本文设计了$\beta$和$\alpha$分别控制目标检测与实例分割的损失函数权重。对于目标检测监督与实例分割监督而言，损失函数的设计与选择已经相当成熟。如公式\eqref{mask_loss}与公式\eqref{box_loss}所示，损失函数在这里使用了交叉熵来度量真实标签与预测向量的差距。只不过与目标检测的损失函数$L_{bbox_{reg}}$定义不一样，实例分割的损失函数$L_{mask_{reg}}$是以多阶段中继监督的形式体现出来的。在本文的实验中为了方便操作，暂时将$\beta$设置为0，$\alpha$设置为0.05来弱化实例分割对于网络整体训练的影响。本文使用了加入中级监督的类似L2范数形式来定义姿态估计分支的损失函数\eqref{key-point_loss}。对于优化模块而言，实例分割与姿态估计两个的任务的损失函数会同时作用于网络自生成的注意力上。这样既能够达到本文最初训练能够完成多任务的优化模块的目标，又能够让网络得到一个更加适应数据的注意力。而通过这样的监督方法，也希望能够证明，适应数据的注意力也能够在语义性上具有较强的可解释性。
 
-\begin{equation}
-%	section 1 loss
-\label{detection_loss}
-L_{total} = \beta L_{bbox_{reg}} + \alpha L_{mask_{reg}} + L_{key-point_{reg}}
-\end{equation} 
-\begin{equation}
-%	bbox & mask regression loss
-\label{bbox_mask_loss}
-\begin{aligned}
-L_{bbox_{reg}} &= -\sum_{c \in C}{\hat{p_c} \log{p_c^{*}}} \\
-L_{mask_{reg}} &= -\sum_{t=1}^{T}\sum_{c \in C}{\hat{s_c} \log{s_c^{*}}}
-\end{aligned}
-\end{equation}
-\begin{equation}
-%	coarse mask regression loss
-\label{key-point_loss}
-L_{keypoint_{reg}} = \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*} \right\|_2}
-\end{equation}
+\begin{align}
+L_{total} &= \beta L_{bbox_{reg}} + \alpha L_{mask_{reg}} + L_{key-point_{reg}}\label{detection_loss}\\
+L_{bbox_{reg}} &= -\sum_{c \in C}{\hat{p_c} \log{p_c^{*}}}\label{bbox_loss}\\
+L_{mask_{reg}} &= -\sum_{t=1}^{T}\sum_{c \in C}{\hat{s_c} \log{s_c^{*}}}\label{mask_loss}\\
+L_{keypoint_{reg}} &= \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*} \right\|_2}\label{key-point_loss}
+\end{align}
 
-\subsection{梯度计算}
+\subsection{梯度分析}
 \label{subsec:gradient}
+本文提出的优化模块结构涉及到两支输出相互交叉与传递，因此本文需要给出对应损失函数对于梯度的影响，从而证明网络能够在添加结构的条件下保证两支网络的正常收敛。分析梯度主要是通过对网络求导来完成。因为在梯度回传过程中需要计算输入对输出的导数，通过将本层导数与来自上层的梯度相乘，可以得到本层的参数更新梯度。因此，通过对网络求导方式，可以更加直观地分析梯度回传的大小，从而改善网络收敛的特性。尤其对于多任务融合网络而言，为了让网络最优，梯度分析更加重要。
+
+为了方便求导，不妨设$f \otimes K_{t-1}$为$X^k_{t-1}$，$f \otimes M_{t-1}$为$X^m_{t-1}$。同时，引用公式\eqref{def:sharedconv}、公式\eqref{def:attenconverter}、公式\eqref{def:fusion}以及公式\eqref{def:keypointhead}中的符号，那么损失函数对优化模块的输入$X^k_{t-1}$与$X^m_{t-1}$的影响程度可以被分别推导为:
+\begin{corollary}
+\label{corollary:loss2xk}
+全局损失$L$函数对优化模块的输入$X^k_{t-1}$的求导：
+\begin{equation*}
+\begin{aligned}
+\frac{\partial L}{\partial X_{t-1}^k} &= \frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial X_{t-1}^k} + \frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial X_{t-1}^k}\\
+&= \frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial H_m}\frac{\partial H_m(c)}{\partial X_{t-1}^k} + \frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial ca_{\sigma}}{\partial X_{t-1}^k}\\
+&= \frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial H_m(c)}\frac{\partial H_m(c)}{\partial c}\frac{\partial c}{\partial X_{t-1}^k} + a_{\sigma}\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial c}{\partial X_{t-1}^k}
+\end{aligned}
+\end{equation*}
+\end{corollary}
+\begin{corollary}
+\label{corollary:loss2xm}
+全局损失$L$函数对优化模块的输入$X^m_{t-1}$的求导：
+\begin{equation*}
+\begin{aligned}
+\frac{\partial L}{\partial X^m_{t-1}} &= \frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial X^m_{t-1}} + \frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial X^m_{t-1}}\\
+&=\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial a_{\tanh}}\frac{\partial a_{\tanh}}{\partial X^m_{t-1}} + \frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial ca_{\sigma}}{\partial X^m_{t-1}}\\
+&=\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial a_{\tanh}}\frac{\partial a_{\tanh}}{\partial a}\frac{\partial a}{\partial X^m_{t-1}} + c\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial a_{\sigma}}{\partial X^m_{t-1}}
+\end{aligned}
+\end{equation*}
+\end{corollary}
+
+同时根据在公式\eqref{detection_loss}全局损失的定义，所以损失函数对于分割分支的输出影响可以被可以被推导为：
+\begin{equation*}
+\begin{aligned}
+\frac{\partial L}{\partial M_t} &= \frac{\partial (\alpha L_{mask_{reg}} + L_{key-point_{reg}})}{\partial M_t}\\
+&= \alpha\frac{\partial L_{mask_{reg}}}{\partial M_t} + \frac{\partial L_{key-point_{reg}}}{\partial M_t}
+\end{aligned}
+\end{equation*}
+
+根据公式\eqref{key-point_loss}中定义，关键点损失函数仅与关键点输出$K$有关，因此不难得出$\frac{L_{key-point_{reg}}}{\partial M_t}=0$。那么在上文中陈述的推导过程中，全局损失函数对于分割分支的输出影响可以被化简为：
+\begin{equation}
+\label{eq:L2Mt}
+\frac{\partial L}{\partial M_t} = \alpha\frac{\partial L_{mask_{reg}}}{\partial M_t}
+\end{equation}
+同样地，根据公式\eqref{mask_loss}中定义，分割任务损失也仅与分割输出$M$有关，故不难得出$\frac{L_{mask_{reg}}}{\partial K_t}=0$。那么全局损失函数对于关键点分支的输出影响同样可以被推导为
+\begin{equation}
+\label{eq:L2Kt}
+\frac{\partial L}{\partial K_t} = \frac{\partial L_{key-point_{reg}}}{\partial K_t}
+\end{equation}
+
+结合推论\ref{corollary:loss2xk}与推论\ref{corollary:loss2xm}和公式\eqref{eq:L2Kt}与公式\eqref{eq:L2Kt}，不难得出全局损失函数中的不同部分对于不同分支输入的影响：
+\begin{align}
+\frac{\partial L_{key-point_{reg}}}{\partial X^k_{t-1}} &= a_{\sigma}\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial c}{\partial X_{t-1}^k}\label{def:dloss_keyloss-key}\\
+\frac{\partial L_{key-point_{reg}}}{\partial X^m_{t-1}} &= c\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial a_{\sigma}}{\partial X^m_{t-1}}\label{def:dloss_keyloss-mask}\\
+\frac{\partial L_{mask_{reg}}}{\partial X^k_{t-1}} &= \alpha\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial H_m(c)}\frac{\partial H_m(c)}{\partial c}\frac{\partial c}{\partial X_{t-1}^k}\label{def:dloss_maskloss-key}\\
+\frac{\partial L_{mask_{reg}}}{\partial X^m_{t-1}} &= \alpha\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial a_{\tanh}}\frac{\partial a_{\tanh}}{\partial X^m_{t-1}}\label{def:dloss_maskloss-mask}
+\end{align}
+其中，公式\eqref{def:dloss_keyloss-key}描述关键点信息对于关键点分支输入的影响；公式\eqref{def:dloss_keyloss-mask}描述了关键点监督信息对于优化模块下支输入的影响。同样地，分割损失函数对于上下支的影响也可以分别描述为公式\eqref{def:dloss_maskloss-key}与公式\eqref{def:dloss_maskloss-mask}。
+
+可以看到在公式\eqref{def:dloss_keyloss-key}与公式\eqref{def:dloss_keyloss-mask}中看到，关键点部分损失函数会同时影响到优化模块的两个输入。但由于损失函数对于上下两支的影响会分别受到中间输出$c$与$a_{\sigma}$的影响，因此本文使用了L2正则化让$c$的输出尽可能小，使从关键点损失回传的梯度变小，从而相对减小关键点信息对于分割信息的影响，也就意味着关键点损失会对注意力转换器中参数的影响被削弱。相反地，因为本文希望增强关键点损失对于共享卷积层的影响，所以本文使用带负号的L2正则化使$a_{\sigma}$的输出更倾向于远离0，从而让对应损失函数对于对应分支的影响增大，让关键点损失更多地将梯度回传进入共享卷积层。
+
+同样地，在公式\eqref{def:dloss_maskloss-key}与公式\eqref{def:dloss_maskloss-mask}中，分割损失函数也会同时影响进入优化模块的两支输入。不同的是，分割损失函数并不会由于任何中间结果受到影响，因此本文没有涉及特殊策略平衡分割任务损失函数对于不同分支的梯度影响。
+
 
 \subsection{训练策略}
 \label{subsec:trainingstrategy}
