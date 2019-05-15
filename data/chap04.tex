@@ -4,68 +4,79 @@
 \section{数据集与评价指标}
 \label{sec:dataset}
 为了验证在\ref{sec:refine}节中提出的网络结构，我们设计了两个性能对比实验。在实验中我们使用了COCO开放验证数据集\cite{lin2014microsoft}作为我们验证的数据集。在验证的时候，我们使用了平均精确度与关键点命中概率曲线\cite{andriluka20142d}作为评价指标。这两种评价指标都是旨在统计一定容忍度下的关键点命中情况。与PCK评价指标的曲线不同，mAP尝试使用积分来给出具体的一个数值来评判姿态估计方法的性能。
+
+PCK曲线，也就是关键点命中概率曲线，可以被定义为公式\eqref{def:PCK}的形式。不难理解，PCK曲线就是以r为自变量的一个关于在指定关键点$i$概率曲线。通过统计不同阈值下的命中频率，来描述算法在不同容忍度下的准确程度。其中公式\eqref{def:PCK}中$norm_a$与$norm_b$在PCK与PCKh中定义不同：在PCK中，这两个关键点分别是左胯和右肩膀；在PCKh中，使用的两个距离归一化关键点是头顶与肩膀。
+\begin{equation}
+\label{def:PCK}
+PCK_i(r) = \frac{1}{Ni}card\big\lgroup\frac{\lVert y_i^* - y_i \rVert_2}{\lVert y_{norm_a} - y_{norm_b}\rVert_2} \le r \big\rgroup
+\end{equation}
+
+
 \section{性能对比}
 \label{sec:perfcompare}
-\section{自对比实验与分析}
-\label{sec:ablation}
-\subsection{自对比策略}
-\label{subsec:selfstrategy}
-\subsection{自对比性能实验}
-\label{subsec:selfeval}
-我们设计了三种自对比的网络结构策略：
-\begin{itemize}
-	\item 单任务无融合：不使用多任务分支的简单结构也不使用注意力机制的网络结构。
-	\item 多任务无融合：使用多任务分支\footnote{多任务分支指加入实例分割任务训练，但不使用注意力交叉与传递特征信息。}但不使用注意力机制的网络结构。
-	\item 多任务融合：使用多任务分支且使用注意力机制的网络结构。
-\end{itemize}
-
-表格\ref{tab:mAPCOCOselfbenchmark}描述了本方法在COCO开放验证数据集上的表现情况。根据在不同的物体关键点相关性(OKS)\footnote{物体关键点相关性，Object Key-point Similarity，给定了一定的范围来让评估算法判定模型给出的关键点是否命中对应的真值关键点。}数值的条件下，模型在加入注意力机制后性能得到了明显的提升。这说明了使用注意力机制引入实例分割信息的确能够有效地提升多人检测的性能。
-
-% TODO: 自对比表格数据填充
-\begin{longtable}[c]{c*{6}{r}}
-	\caption{自对比mAP评价数据}
-	\label{tab:mAPCOCOselfbenchmark}\\
+本节中文章主要通过对比网络在PCKh与mAP指标上的表现，来对比网络与现有方法的性能。在对比的同时还会给出结果分析，尝试从实验结果验证网络结构设计的优势。本文选取了自顶向下结构的堆叠沙漏模型作为我们的基线方法。
+% TODO: 比较表格
+\begin{longtable}[c]{c*{5}{r}}
+	\caption{COCO公开测试集的模型性能对比}
+	\label{tab:mAPCOCObenchmark}\\
 	\toprule[1.5pt]
-	方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$} & \multicolumn{1}{c}{$AP_{OKS=0.95}$}
+	方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$}
 	& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
 	
 	& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}&
 	\multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{
-		百分比 (\%)}&  \multicolumn{1}{c}{
 		百分比 (\%)}\\\midrule[1pt]
 	\endhead
 	\endlastfoot
-	单任务无融合 & 23.05 & 0.002 & 0.116 & 0.035 & 0.589 & 32491 \\
-	单任务有融合 & 15.06 & 0.003 & 0.067 & 0.021 & 0.351 & 18211 \\
-	多任务有融合 & 13.38 & 0.004 & 0.072 & 0.023 & 0.210 & 9890 \\
-	多任务有融合+ & 867.45 & 0.002 & 0.864 & 0.232 & 3.256 & 228562 \\
+	Top-down SHN\cite{newell2016stacked} & 46.0 & 74.6 & 48.4 & 38.8  & 55.6 \\
+	本文复现 & 41.2 & 71.3 & 45.9 & 34.2 & 47.4 \\
+	本文方法 & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
+	本文方法+ & 46.7 & 83.4 & 46.6 & 45.1 & 53.2 \\
+	\bottomrule[1.5pt]
+\end{longtable}
+
+
+\section{自对比实验与分析}
+\label{sec:ablation}
+本节
+\subsection{自对比策略}
+\label{subsec:selfstrategy}
+由于本文提出了一种能够融合实例分割信息的新结构，因此需要设计自对比实验来证明文章提出的结构能够改善基线方法
+本文设计了三种自对比的网络结构策略：
+\begin{itemize}
+	\item 单任务无融合：不使用多任务分支的简单结构也不使用注意力机制的网络结构。
+	\item 多任务无融合：使用多任务分支但不使用注意力机制的网络结构\footnote{多任务分支指加入实例分割任务训练，但不使用注意力交叉与传递特征信息。}。
+	\item 多任务融合：使用多任务分支且使用注意力机制的网络结构。
+	\item 多任务融合：使用多任务分支且使用注意力机制的网络结构，并使用更多的堆叠的网络模块。
+\end{itemize}
+
+\subsection{自对比性能实验}
+\label{subsec:selfeval}
+
+表格\ref{tab:mAPCOCOselfbenchmark}描述了本方法在COCO开放验证数据集上的表现情况。根据在不同的物体关键点相关性(OKS)\footnote{物体关键点相关性，Object Key-point Similarity，给定了一定的范围来让评估算法判定模型给出的关键点是否命中对应的真值关键点。}数值的条件下，模型在加入注意力机制后性能得到了明显的提升。这说明了使用注意力机制引入实例分割信息的确能够有效地提升多人检测的性能。
+
+% TODO: 自对比表格数据填充
+\begin{longtable}[c]{c*{5}{r}}
+	\caption{自对比mAP评价数据}
+	\label{tab:mAPCOCOselfbenchmark}\\
+	\toprule[1.5pt]
+	方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$} 
+	& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
+	
+	& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}&
+	\multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{
+		百分比 (\%)}\\ \midrule[1pt]
+	\endhead
+	\endlastfoot
+	单任务无融合 & 41.2 & 71.3 & 45.9& 34.2& 47.4\\
+	单任务有融合 & 38.8 & 78.4 & 25.6 & 30.1 & 37.7 \\
+	多任务有融合 & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
+	多任务有融合+ & 46.7 & 83.4 & 46.6 & 45.1 & 53.2 \\
 	\bottomrule[1.5pt]
 \end{longtable}
 
 组图x是使用PCK评价方法在COCO数据集上评价的结果。可以看到，在使用全部策略时，模型的性能全部优于其他策略的性能。
 %TODO：PCK组图
-我们选取了几种现代多人姿态估计算法来评价指标。
-% TODO: 比较表格
-\begin{longtable}[c]{c*{6}{r}}
-	\caption{COCO公开测试集的模型性能对比}
-	\label{tab:mAPCOCObenchmark}\\
-	\toprule[1.5pt]
-	方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$} & \multicolumn{1}{c}{$AP_{OKS=0.95}$}
-	& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
-	
-	& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}&
-	\multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{
-		百分比 (\%)}&  \multicolumn{1}{c}{
-		百分比 (\%)}\\\midrule[1pt]
-	\endhead
-	\endlastfoot
-	CPM\cite{wei2016convolutional} & 15.06 & 0.003 & 0.067 & 0.021 & 0.351 & 18211 \\
-	RMPE\cite{fang2017rmpe} & 13.38 & 0.004 & 0.072 & 0.023 & 0.210 & 9890 \\
-	CPN\cite{Chen2017Cascaded} & 867.45 & 0.002 & 0.864 & 0.232 & 3.256 & 228562 \\
-	本文方法 & 23.05 & 0.002 & 0.116 & 0.035 & 0.589 & 32491 \\
-	本文方法+ & 23.05 & 0.002 & 0.116 & 0.035 & 0.589 & 32491 \\
-	\bottomrule[1.5pt]
-\end{longtable}
 
 \subsection{注意力可视化}
 \label{sec:weaksuperatten}
