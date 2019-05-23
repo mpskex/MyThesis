@@ -1126,7 +1126,7 @@
 }
 \NewDocumentEnvironment{conclusion}{o}{%
     \clearpage
-    \thu@chapter*{结论}
+    \thu@chapter*{结论与展望}
   }
   {
     \relax

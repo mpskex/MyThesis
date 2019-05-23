@@ -1,122 +1,153 @@
 \chapter{实验验证与分析}
 \label{cha:exp}
-为了证明方法的有效性，我们完成了一些实验来证明我们提出的弱监督下的注意力以及其对应的网络结构能够较好地解决多人遮挡的问题。
+在实验中，我们在COCO2017验证数据集上达成了46.7mAP的姿态检测结果，证明了本文中的优化模块的确优化了多人姿态估计网络的性能。同时，为了证明方法的有效性，我们完成了一些实验来证明我们提出的弱监督下的注意力以及其对应的网络结构能够较好地在解决多人遮挡的问题的同时，改善关键点与实例分割的结果。
 \section{数据集与评价指标}
 \label{sec:dataset}
-为了验证在\ref{sec:refine}节中提出的网络结构，我们设计了两个性能对比实验。在实验中我们使用了COCO开放验证数据集\cite{lin2014microsoft}作为我们验证的数据集。在验证的时候，我们使用了平均精确度与关键点命中概率曲线\cite{andriluka20142d}作为评价指标。这两种评价指标都是旨在统计一定容忍度下的关键点命中情况。与PCK评价指标的曲线不同，mAP尝试使用积分来给出具体的一个数值来评判姿态估计方法的性能。
+为了验证在\ref{sec:refine}节中提出的网络结构，本文设计了使用mAP作为评价指标的消融实验与性能对比实验。在实验中我们使用了COCO2017验证数据集\cite{lin2014microsoft}作为我们验证的数据集。平均准确度(mAP，mean Average Precision)\cite{zhu2004recall}指标都是旨在统计一定容忍度下的关键点命中情况。平均准确度通过计算交并比(IoU, Intersection over Union)来求得不同物体关键点相似度(OKS，Object Key-point Similarity)\footnote{物体关键点相似度从0.5取值至0.95，间隔为0.01。}下的准确率，并对这些准确率进行积分得到最终平均准确率。
 
-PCK曲线，也就是关键点命中概率曲线，可以被定义为公式\eqref{def:PCK}的形式。不难理解，PCK曲线就是以r为自变量的一个关于在指定关键点$i$概率曲线。通过统计不同阈值下的命中频率，来描述算法在不同容忍度下的准确程度。其中公式\eqref{def:PCK}中$norm_a$与$norm_b$在PCK与PCKh中定义不同：在PCK中，这两个关键点分别是左胯和右肩膀；在PCKh中，使用的两个距离归一化关键点是头顶与肩膀。
-\begin{equation}
-\label{def:PCK}
-PCK_i(r) = \frac{1}{Ni}card\big\lgroup\frac{\lVert y_i^* - y_i \rVert_2}{\lVert y_{norm_a} - y_{norm_b}\rVert_2} \le r \big\rgroup
-\end{equation}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.6\linewidth]{OKS.png}
+	\caption{物体关键点相似度图示\cite{ruggero2017benchmarking}}
+	\label{fig:oksfigure}
+\end{figure}
 
+物体关键点在计算交并比的时候，需要设置关键点的容许度半径，如图\ref{fig:oksfigure}中所示。不同的关键点拥有不同的容许度半径。比如眼睛的容许度半径一定比手腕的容许度范围要小。在图\ref{fig:oksfigure}中，手腕与眼睛的预测关键点与真值的距离相当，然而给出的命中判定却不相同。因为人类对眼睛关键点的标注方差更小，对手腕关键点的标注方差更大。COCO数据集根据人类对于不同关键点标注的方差大小设置容许度半径来判别关键点命中是合理的。这比一些通过标准化距离阈值来判别命中的方法，比如关键点命中概率曲线\cite{andriluka20142d}(PCK，Probability of Correct Key-point)更加科学。
 
 \section{性能对比}
 \label{sec:perfcompare}
-本节中文章主要通过对比网络在PCKh与mAP指标上的表现，来对比网络与现有方法的性能。在对比的同时还会给出结果分析，尝试从实验结果验证网络结构设计的优势。本文选取了自顶向下结构的堆叠沙漏模型作为我们的基线方法。
+本节中文章主要通过对比网络在mAP指标上的表现，来对比网络与现有方法的性能。在对比的同时还会给出结果分析，尝试从实验结果验证网络结构设计的优势。本文选取了自顶向下结构的堆叠沙漏模型作为我们的对比方法。
 % TODO: 比较表格
-\begin{longtable}[c]{c*{5}{r}}
+\begin{table*}[ht]
+	\centering
 	\caption{COCO公开测试集的模型性能对比}
-	\label{tab:mAPCOCObenchmark}\\
-	\toprule[1.5pt]
-	方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$}
-	& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
-	
-	& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}&
-	\multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{
-		百分比 (\%)}\\\midrule[1pt]
-	\endhead
-	\endlastfoot
-	Top-down SHN\cite{newell2016stacked} & 46.0 & 74.6 & 48.4 & 38.8  & 55.6 \\
-	本文复现 & 41.2 & 71.3 & 45.9 & 34.2 & 47.4 \\
-	本文方法 & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
-	本文方法+ & 46.7 & 83.4 & 46.6 & 45.1 & 53.2 \\
-	\bottomrule[1.5pt]
-\end{longtable}
+	\label{tab:mAPCOCObenchmark}
+	\begin{minipage}[t]{0.8\linewidth}
+		\begin{tabular}{p{0.25\linewidth}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}}
+			\hline
+			方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$}
+			& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
+			
+			& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}&
+			\multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{
+				(\%)}\\
+			\hline
+			Top-down SHN\cite{newell2016stacked} & 46.0 & 74.6 & \textbf{48.4} & 38.8  & \textbf{55.6} \\
+			本文复现 & 41.2 & 71.3 & 45.9 & 34.2 & 47.4 \\
+			本文方法$^1$ & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
+			本文方法+ $^2$ & \textbf{46.7} & \textbf{83.4} & 46.6 & \textbf{45.1} & 53.2 \\
+			\hline
+		\end{tabular}\\[2pt]
+		\noindent\rule{0.25\linewidth}{1pt} \\
+		\footnotesize
+		1: 使用直接连接的4个堆叠的优化模块，在本文提出的整体训练策略下收敛的模型。\\
+		2: 使用2个$7\times7$组成的回归模块和4个堆叠的优化模块，在本文提出的整体训练策略下收敛的模型。
+	\end{minipage}
+\end{table*}
+
+在表\ref{tab:mAPCOCObenchmark}中，可以明显看到本文在宽松条件下（OKS=0.5）的关键点准确度明显优于本文复现的自顶向下框架和SHN网络的结果。这一结果要归功于网络中使用弱监督学习方法监督的注意力机制，其生成的关注区域帮助网络生成更加紧凑的关键点结果。同时在小目标检测\footnote{在COCO数据集中，小目标通常指边界框面积小于$64^2$的目标。}中明显优于传统的自顶向下的方法。虽然在更高精度下的指标比SHN略差，但是差别并不明显，同时在整体的指标，也就是积分得到的平均准确度中，能够比SHN的性能更优。
+
+% TODO: 计算量对比
 
 
-\section{自对比实验与分析}
+\section{消融实验与分析}
 \label{sec:ablation}
-本节
-\subsection{自对比策略}
+本节中文章设计了消融实验验证优化模块的作用以及有效性。本文提出了多种消融策略来控制优化模块中不同部件出现，从而通过量化指标和可视化效果来量化优化模块对提高算法性能的贡献。
+\subsection{消融策略}
 \label{subsec:selfstrategy}
 由于本文提出了一种能够融合实例分割信息的新结构，因此需要设计自对比实验来证明文章提出的结构能够改善基线方法
 本文设计了三种自对比的网络结构策略：
 \begin{itemize}
-	\item 单任务无融合：不使用多任务分支的简单结构也不使用注意力机制的网络结构。
-	\item 多任务无融合：使用多任务分支但不使用注意力机制的网络结构\footnote{多任务分支指加入实例分割任务训练，但不使用注意力交叉与传递特征信息。}。
-	\item 多任务融合：使用多任务分支且使用注意力机制的网络结构。
-	\item 多任务融合：使用多任务分支且使用注意力机制的网络结构，并使用更多的堆叠的网络模块。
+	\item \textbf{单任务无融合}：不使用多任务分支的简单结构也不使用注意力机制的网络结构。
+	\item \textbf{多任务无融合}：使用多任务分支但不使用注意力机制的网络结构\footnote{多任务分支指加入实例分割任务训练，但不使用注意力交叉与传递特征信息。}。
+	\item \textbf{多任务融合}：使用多任务分支且使用注意力机制的网络结构。
+	\item \textbf{多任务融合}：使用多任务分支且使用注意力机制的网络结构，并使用更多的堆叠的网络模块。
 \end{itemize}
 
-\subsection{自对比性能实验}
+\subsection{消融性能实验}
 \label{subsec:selfeval}
 
-表格\ref{tab:mAPCOCOselfbenchmark}描述了本方法在COCO开放验证数据集上的表现情况。根据在不同的物体关键点相关性(OKS)\footnote{物体关键点相关性，Object Key-point Similarity，给定了一定的范围来让评估算法判定模型给出的关键点是否命中对应的真值关键点。}数值的条件下，模型在加入注意力机制后性能得到了明显的提升。这说明了使用注意力机制引入实例分割信息的确能够有效地提升多人检测的性能。
+本文根据\ref{subsec:selfstrategy}节中提到的消融策略完成了在COCO数据集上的消融性能实验。实验结果如表\ref{tab:mAPCOCOselfbenchmark}所示。
 
 % TODO: 自对比表格数据填充
-\begin{longtable}[c]{c*{5}{r}}
+\begin{table}[ht]
+	\centering
 	\caption{自对比mAP评价数据}
-	\label{tab:mAPCOCOselfbenchmark}\\
-	\toprule[1.5pt]
-	方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$} 
-	& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
-	
-	& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}&
-	\multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{百分比 (\%)}& \multicolumn{1}{c}{
-		百分比 (\%)}\\ \midrule[1pt]
-	\endhead
-	\endlastfoot
-	单任务无融合 & 41.2 & 71.3 & 45.9& 34.2& 47.4\\
-	单任务有融合 & 38.8 & 78.4 & 25.6 & 30.1 & 37.7 \\
-	多任务有融合 & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
-	多任务有融合+ & 46.7 & 83.4 & 46.6 & 45.1 & 53.2 \\
-	\bottomrule[1.5pt]
-\end{longtable}
+	\label{tab:mAPCOCOselfbenchmark}
+	\begin{minipage}{0.8\linewidth}
+		\begin{tabular}{p{0.25\linewidth}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}}
+			\hline
+			方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$} 
+			& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
+			
+			& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}&
+			\multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{
+				(\%)}\\
+			\hline
+			单任务无融合 & 41.2 & 71.3 & 45.9& 34.2& 47.4\\
+			多任务无融合 & 38.8 & 78.4 & 25.6 & 30.1 & 37.7 \\
+			多任务有融合 & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
+			多任务有融合+ & 46.7 & 83.4 & 46.6 & 45.1 & 53.2 \\
+			\hline
+		\end{tabular}
+	\end{minipage}
+\end{table}
 
-组图x是使用PCK评价方法在COCO数据集上评价的结果。可以看到，在使用全部策略时，模型的性能全部优于其他策略的性能。
-%TODO：PCK组图
+表格\ref{tab:mAPCOCOselfbenchmark}描述了本方法在COCO开放验证数据集上的表现情况。其中，单任务无融合策略是这四种策略中的基准，因为其仅仅完成单个关键点定位任务，且没有引入注意力机制。在表\ref{tab:mAPCOCOselfbenchmark}中我们可以看到，多任务无融合的实验结果明显低于我们的基准方法，也就意味着简单将多任务直接使用多分支回归会影响最终关键点定位的精度。可以明显地看到在多任务无融合的策略下，在高精度阈值下的准确率明显下降了。
+
+然而在加入融合，也就是使用空间注意力将两任务连接后，网络在高精度要求下的准确度大幅提升。这是得益于多任务的损失函数可以通过梯度回传至分散的分支以让网络更好地收敛。相比之下，网络能够更好地融合实例分割，让关键点检测的结果比基准方法中给出的有多提高。这证明了使用注意力连接的优化模块比一般的多任务分支网络性能能更好，同时也验证了使用优化模块来加入实例分割信息能够有效改善关键点行为的性能。
 
 \subsection{注意力可视化}
 \label{sec:weaksuperatten}
 本文将网络中输出的空间注意力可视化，并于原图混合得到了最终可视化的结果。
 % TODO: 结果效果图
 \label{subsec:attenexp}
-\begin{figure}
+\begin{figure*}
+	\centering
 	\begin{minipage}{\textwidth}
-		被遮挡
 		\centering
-		\includegraphics[height=3cm]{872_insid0_stage2.PNG}
-		\includegraphics[height=3cm]{872_insid0_stage3.PNG}
-		\includegraphics[height=3cm]{872_insid0_stage4.PNG}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				 \rightline{遮挡人}
+			\end{minipage}
+		\end{sideways}
+		\begin{subfigure}{0.2\linewidth}
+		\includegraphics[width=\linewidth]{885_insid0_stage2.PNG}
+		\end{subfigure}
+		\begin{subfigure}{0.2\linewidth}
+		\includegraphics[width=\linewidth]{885_insid0_stage3.PNG}
+		\end{subfigure}
+		\begin{subfigure}{0.2\linewidth}
+		\includegraphics[width=\linewidth]{885_insid0_stage4.PNG}
+		\end{subfigure}
 	\end{minipage}
-	\vskip0.2cm
+
 	\begin{minipage}{\textwidth}
-		遮挡
 		\centering
-		\includegraphics[height=3cm]{872_insid1_stage2.PNG}
-		\includegraphics[height=3cm]{872_insid1_stage3.PNG}
-		\includegraphics[height=3cm]{872_insid1_stage4.PNG}
-	\end{minipage}
-	\begin{minipage}{\textwidth}
-		轻度遮挡
-		\centering
-		\includegraphics[height=3cm]{885_insid1_stage2.PNG}
-		\includegraphics[height=3cm]{885_insid1_stage3.PNG}
-		\includegraphics[height=3cm]{885_insid1_stage4.PNG}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				\rightline{被遮挡人}
+			\end{minipage}
+		\end{sideways}
+		\begin{subfigure}{0.2\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage2.PNG}
+			\caption{stage 2}
+		\end{subfigure}
+		\begin{subfigure}{0.2\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage3.PNG}
+			\caption{stage 3}
+		\end{subfigure}
+		\begin{subfigure}{0.2\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage4.PNG}
+			\caption{stage 4}
+		\end{subfigure}
 	\end{minipage}
 	\label{fig:parallel1}
-	\caption{并排第一个图}
-\end{figure}
+	\caption{示例组1}
+\end{figure*}
 
-\section{研究展望}
-\label{sec:future}
-由于时间有限，本文还有一些后续的研究展望希望在之后之后的工作中继续完善本文提出的网络结构。
-\subsection{基于LSTM的注意力转移机制}
-\label{subsec:lstmatten}
-近年来长短时记忆(LSTM)
-\subsection{基于姿态估计后目标检测}
-\label{subsec:semisuperdetect}
+
+\section{实验效果}
+\label{sec:demo}
 
 \section{本章小结}
