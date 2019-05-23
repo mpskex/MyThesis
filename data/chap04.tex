@@ -61,7 +61,7 @@
 	\item \textbf{单任务无融合}：不使用多任务分支的简单结构也不使用注意力机制的网络结构。
 	\item \textbf{多任务无融合}：使用多任务分支但不使用注意力机制的网络结构\footnote{多任务分支指加入实例分割任务训练，但不使用注意力交叉与传递特征信息。}。
 	\item \textbf{多任务融合}：使用多任务分支且使用注意力机制的网络结构。
-	\item \textbf{多任务融合}：使用多任务分支且使用注意力机制的网络结构，并使用更多的堆叠的网络模块。
+	\item \textbf{多任务融合+}：使用多任务分支且使用注意力机制的网络结构，并使用更多的堆叠的网络模块。
 \end{itemize}
 
 \subsection{消融性能实验}
@@ -106,44 +106,104 @@
 	\centering
 	\begin{minipage}{\textwidth}
 		\centering
+		\begin{subfigure}{0.23\linewidth}
+		\includegraphics[width=\linewidth]{000000000885.jpg}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+		\includegraphics[width=\linewidth]{885_insid0_stage1_atten.png}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+		\includegraphics[width=\linewidth]{885_insid0_stage2_atten.png}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+		\includegraphics[width=\linewidth]{885_insid0_stage3_atten.png}
+		\end{subfigure}
 		\begin{sideways}
-			\begin{minipage}{1cm}
-				 \rightline{遮挡人}
-			\end{minipage}
+		\begin{minipage}{1cm}
+			\rightline{遮挡人}
+		\end{minipage}
 		\end{sideways}
-		\begin{subfigure}{0.2\linewidth}
-		\includegraphics[width=\linewidth]{885_insid0_stage2.PNG}
-		\end{subfigure}
-		\begin{subfigure}{0.2\linewidth}
-		\includegraphics[width=\linewidth]{885_insid0_stage3.PNG}
-		\end{subfigure}
-		\begin{subfigure}{0.2\linewidth}
-		\includegraphics[width=\linewidth]{885_insid0_stage4.PNG}
-		\end{subfigure}
 	\end{minipage}
 
+	\vskip2pt
 	\begin{minipage}{\textwidth}
 		\centering
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid-1_stage5_keypoint.png}
+			\caption{原图与结果}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage1_atten.png}
+			\caption{stage 2}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage2_atten.png}
+			\caption{stage 3}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage3_atten.png}
+			\caption{stage 4}
+		\end{subfigure}
 		\begin{sideways}
 			\begin{minipage}{1cm}
 				\rightline{被遮挡人}
 			\end{minipage}
 		\end{sideways}
-		\begin{subfigure}{0.2\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage2.PNG}
-			\caption{stage 2}
-		\end{subfigure}
-		\begin{subfigure}{0.2\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage3.PNG}
-			\caption{stage 3}
-		\end{subfigure}
-		\begin{subfigure}{0.2\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage4.PNG}
-			\caption{stage 4}
-		\end{subfigure}
 	\end{minipage}
 	\label{fig:parallel1}
 	\caption{示例组1}
+\end{figure*}
+
+\begin{figure*}
+	\centering
+	\begin{minipage}{\textwidth}
+		\centering
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{000000002153.jpg}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{2153_insid0_stage1_atten.png}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{2153_insid0_stage2_atten.png}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{2153_insid0_stage3_atten.png}
+		\end{subfigure}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				\rightline{遮挡人}
+			\end{minipage}
+		\end{sideways}
+	\end{minipage}
+	
+	\vskip2pt
+	\begin{minipage}{\textwidth}
+		\centering
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{2153_insid-1_stage5_keypoint.png}
+			\caption{原图与结果}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{2153_insid3_stage1_atten.png}
+			\caption{stage 2}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{2153_insid3_stage2_atten.png}
+			\caption{stage 3}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{2153_insid3_stage3_atten.png}
+			\caption{stage 4}
+		\end{subfigure}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				\rightline{被遮挡人}
+			\end{minipage}
+		\end{sideways}
+	\end{minipage}
+	\label{fig:parallel1}
+	\caption{示例组2}
 \end{figure*}
 
 
