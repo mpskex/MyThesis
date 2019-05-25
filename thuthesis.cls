@@ -875,7 +875,7 @@
          \setlength{\extrarowheight}{10pt}
          \begin{tabular}{p{\thu@title@width}@{}l@{\extracolsep{20pt}}l}
              \thu@put@title{\thu@bachelor@title@pre} & \thu@title@sep
-               & \parbox[t]{8cm}{\thu@ctitle\vskip1.5cm}\\
+               & \parbox[t]{7.6cm}{\thu@ctitle\vskip0.7cm}\\
              \thu@put@title{\thu@author@title}     & \thu@title@sep
                & \thu@cauthor \\
              \thu@put@title{\thu@studentno@title}  & \thu@title@sep

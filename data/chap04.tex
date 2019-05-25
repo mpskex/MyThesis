@@ -1,9 +1,11 @@
 \chapter{实验验证与分析}
 \label{cha:exp}
-在实验中，我们在COCO2017验证数据集上达成了46.7mAP的姿态检测结果，证明了本文中的优化模块的确优化了多人姿态估计网络的性能。同时，为了证明方法的有效性，我们完成了一些实验来证明我们提出的弱监督下的注意力以及其对应的网络结构能够较好地在解决多人遮挡的问题的同时，改善关键点与实例分割的结果。
+在实验中，本文在COCO2017验证数据集上达成了46.7mAP的姿态检测结果，证明了本文中的优化模块的确优化了多人姿态估计网络的性能。同时，为了证明方法的有效性，本文完成了一些实验来证明本文提出的弱监督下的注意力以及其对应的网络结构能够较好地在解决多人遮挡的问题的同时，改善关键点与实例分割的结果。
 \section{数据集与评价指标}
 \label{sec:dataset}
-为了验证在\ref{sec:refine}节中提出的网络结构，本文设计了使用mAP作为评价指标的消融实验与性能对比实验。在实验中我们使用了COCO2017验证数据集\cite{lin2014microsoft}作为我们验证的数据集。平均准确度(mAP，mean Average Precision)\cite{zhu2004recall}指标都是旨在统计一定容忍度下的关键点命中情况。平均准确度通过计算交并比(IoU, Intersection over Union)来求得不同物体关键点相似度(OKS，Object Key-point Similarity)\footnote{物体关键点相似度从0.5取值至0.95，间隔为0.01。}下的准确率，并对这些准确率进行积分得到最终平均准确率。
+COCO2017数据集包含了15万个人体以及将近170万个标注的关键点信息。本文在使用该数据集时，将数据集中的标注数据进行了清洗。本文将小于3个关键点的数据过滤，从而在训练数据集中选出了满足要求的二十六万个训练数据以及用于验证的一万一千个验证数据。每个数据由关键点信息以及目标框组成。本文中为了整体训练整个网络，同时使用了数据集中的关键点以及目标框的信息。
+
+为了验证在\ref{sec:refine}节中提出的网络结构，本文设计了使用mAP作为评价指标的消融实验与性能对比实验。在实验中本文使用了COCO2017验证数据集\cite{lin2014microsoft}作为本文验证的数据集。平均准确度(mAP，mean Average Precision)\cite{zhu2004recall}指标都是旨在统计一定容忍度下的关键点命中情况。平均准确度通过计算交并比(IoU, Intersection over Union)来求得不同物体关键点相似度(OKS，Object Key-point Similarity)\footnote{物体关键点相似度从0.5取值至0.95，间隔为0.01。}下的准确率，并对这些准确率进行积分得到最终平均准确率。
 
 \begin{figure}
 	\centering
@@ -16,7 +18,7 @@
 
 \section{性能对比}
 \label{sec:perfcompare}
-本节中文章主要通过对比网络在mAP指标上的表现，来对比网络与现有方法的性能。在对比的同时还会给出结果分析，尝试从实验结果验证网络结构设计的优势。本文选取了自顶向下结构的堆叠沙漏模型作为我们的对比方法。
+本节中文章主要通过对比网络在mAP指标上的表现，来对比网络与现有方法的性能。在对比的同时还会给出结果分析，尝试从实验结果验证网络结构设计的优势。本文选取了自顶向下结构的堆叠沙漏模型作为本文的对比方法。
 % TODO: 比较表格
 \begin{table*}[ht]
 	\centering
@@ -93,82 +95,26 @@
 	\end{minipage}
 \end{table}
 
-表格\ref{tab:mAPCOCOselfbenchmark}描述了本方法在COCO开放验证数据集上的表现情况。其中，单任务无融合策略是这四种策略中的基准，因为其仅仅完成单个关键点定位任务，且没有引入注意力机制。在表\ref{tab:mAPCOCOselfbenchmark}中我们可以看到，多任务无融合的实验结果明显低于我们的基准方法，也就意味着简单将多任务直接使用多分支回归会影响最终关键点定位的精度。可以明显地看到在多任务无融合的策略下，在高精度阈值下的准确率明显下降了。
+表格\ref{tab:mAPCOCOselfbenchmark}描述了本方法在COCO开放验证数据集上的表现情况。其中，单任务无融合策略是这四种策略中的基准，因为其仅仅完成单个关键点定位任务，且没有引入注意力机制。在表\ref{tab:mAPCOCOselfbenchmark}中可以看到，多任务无融合的实验结果明显低于本文的基准方法，也就意味着简单将多任务直接使用多分支回归会影响最终关键点定位的精度。可以明显地看到在多任务无融合的策略下，在高精度阈值下的准确率明显下降了。
 
 然而在加入融合，也就是使用空间注意力将两任务连接后，网络在高精度要求下的准确度大幅提升。这是得益于多任务的损失函数可以通过梯度回传至分散的分支以让网络更好地收敛。相比之下，网络能够更好地融合实例分割，让关键点检测的结果比基准方法中给出的有多提高。这证明了使用注意力连接的优化模块比一般的多任务分支网络性能能更好，同时也验证了使用优化模块来加入实例分割信息能够有效改善关键点行为的性能。
 
 \subsection{注意力可视化}
 \label{sec:weaksuperatten}
-本文将网络中输出的空间注意力可视化，并于原图混合得到了最终可视化的结果。
-% TODO: 结果效果图
-\label{subsec:attenexp}
-\begin{figure*}
+本文将网络中输出的空间注意力可视化，并于原图混合得到了最终可视化的结果。由于空间注意力是一个单通道的热图，因此本文使用了Plasma方式映射颜色空间，得到了在图\ref{fig:attenvis}右侧的可视化结果。如图\ref{fig:attenvis}中所示，注意力能够较为明确地给出遮挡人轮廓边界。同时对于被遮挡人不可见身体部分的对应区域，空间注意力也能给出一定的响应。
+
+\begin{figure}[h]
 	\centering
 	\begin{minipage}{\textwidth}
 		\centering
 		\begin{subfigure}{0.23\linewidth}
-		\includegraphics[width=\linewidth]{000000000885.jpg}
+			\includegraphics[width=\linewidth]{60507_insid1_stage1_atten.png}
 		\end{subfigure}
 		\begin{subfigure}{0.23\linewidth}
-		\includegraphics[width=\linewidth]{885_insid0_stage1_atten.png}
+			\includegraphics[width=\linewidth]{60507_insid1_stage2_atten.png}
 		\end{subfigure}
 		\begin{subfigure}{0.23\linewidth}
-		\includegraphics[width=\linewidth]{885_insid0_stage2_atten.png}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-		\includegraphics[width=\linewidth]{885_insid0_stage3_atten.png}
-		\end{subfigure}
-		\begin{sideways}
-		\begin{minipage}{1cm}
-			\rightline{遮挡人}
-		\end{minipage}
-		\end{sideways}
-	\end{minipage}
-
-	\vskip2pt
-	\begin{minipage}{\textwidth}
-		\centering
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid-1_stage5_keypoint.png}
-			\caption{原图与结果}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage1_atten.png}
-			\caption{stage 2}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage2_atten.png}
-			\caption{stage 3}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage3_atten.png}
-			\caption{stage 4}
-		\end{subfigure}
-		\begin{sideways}
-			\begin{minipage}{1cm}
-				\rightline{被遮挡人}
-			\end{minipage}
-		\end{sideways}
-	\end{minipage}
-	\label{fig:parallel1}
-	\caption{示例组1}
-\end{figure*}
-
-\begin{figure*}
-	\centering
-	\begin{minipage}{\textwidth}
-		\centering
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{000000002153.jpg}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{2153_insid0_stage1_atten.png}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{2153_insid0_stage2_atten.png}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{2153_insid0_stage3_atten.png}
+			\includegraphics[width=\linewidth]{60507_insid1_stage3_atten.png}
 		\end{subfigure}
 		\begin{sideways}
 			\begin{minipage}{1cm}
@@ -181,20 +127,16 @@
 	\begin{minipage}{\textwidth}
 		\centering
 		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{2153_insid-1_stage5_keypoint.png}
-			\caption{原图与结果}
+			\includegraphics[width=\linewidth]{60507_insid12_stage1_atten.png}
+			\caption{阶段2}
 		\end{subfigure}
 		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{2153_insid3_stage1_atten.png}
-			\caption{stage 2}
+			\includegraphics[width=\linewidth]{60507_insid12_stage2_atten.png}
+			\caption{阶段3}
 		\end{subfigure}
 		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{2153_insid3_stage2_atten.png}
-			\caption{stage 3}
-		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
-			\includegraphics[width=\linewidth]{2153_insid3_stage3_atten.png}
-			\caption{stage 4}
+			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
+			\caption{阶段4}
 		\end{subfigure}
 		\begin{sideways}
 			\begin{minipage}{1cm}
@@ -202,12 +144,171 @@
 			\end{minipage}
 		\end{sideways}
 	\end{minipage}
-	\label{fig:parallel1}
-	\caption{示例组2}
-\end{figure*}
+	\caption{在$\alpha=0.1$遮挡情况下的空间注意力可视化结果}
+	\label{fig:attenvis}
+\end{figure}
 
+在全局损失函数(公式\eqref{detection_loss})中不同的$\alpha$会影响注意力的生成。根据\ref{subsec:gradient}节中的推导，更低的$\alpha$会引导注意力在训练过程中缺少来自实例分割的引导。这会让注意力关注的区域更加泛化，难以引导关键点分支关注正确的区域。本文使用不同的$alpha$取值训练网络，同来对比生成的注意力区域的精细程度。由于网络生成的注意力对关键点任务十分重要，因此注意力生成的质量可以间接表明模型的性能。
+
+
+\begin{figure}[ht]
+	\centering
+	\begin{minipage}{\linewidth}
+		\centering
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{60507_insid1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{60507_insid1_stage1_atten_alpha.png}
+		\end{subfigure}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				\rightline{遮挡人}
+			\end{minipage}
+		\end{sideways}
+	\end{minipage}
+	
+	\vskip2pt
+	\begin{minipage}{\linewidth}
+		\centering
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
+			\caption{$\alpha=0.1$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{60507_insid12_stage1_atten_alpha.png}
+			\caption{$\alpha=0.01$}
+		\end{subfigure}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				\rightline{被遮挡人}
+			\end{minipage}
+		\end{sideways}
+	\end{minipage}
+	\caption{在$\alpha$取值下训练得到的遮挡情况下的空间注意力可视化结果}
+	\label{fig:attenalpha}
+\end{figure}
+
+正如上文所推测，更小的$\alpha$取值非但没有让注意力更多地关注关键点区域，反而让注意力生成更加偏离实例分割的结果。这样与本文希望注意力能够达到的目标相悖，因而在实验中选取了$\alpha=0.1$作为损失函数中平衡实例分割与关键点影响的因子来训练网络。
 
 \section{实验效果}
 \label{sec:demo}
 
+\begin{figure}[htbp]
+	\centering
+	\begin{minipage}[t]{\linewidth}
+		\centering
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid-1_stage5_keypoint.png}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid-1_stage3_atten.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid-1_mask.PNG}
+		\end{minipage}
+		
+		\vskip5pt
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000_insid-1_stage5_keypoint.png}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000_insid-1_stage3_atten.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000_insid-1_mask.PNG}
+		\end{minipage}
+		
+		\vskip5pt
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{13729.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{13729_insid-1_stage5_keypoint.png}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{13729_insid-1_stage3_atten.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{13729_insid-1_mask.PNG}
+		\end{minipage}
+		
+		\vskip5pt
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{18491.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{18491_insid-1_stage5_keypoint.png}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{18491_insid-1_stage3_atten.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{18491_insid-1_mask.PNG}
+		\end{minipage}
+		
+		\vskip5pt
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{38829.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{38829_insid-1_stage5_keypoint.png}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{38829_insid-1_stage3_atten.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{38829_insid-1_mask.PNG}
+		\end{minipage}
+		
+		\vskip5pt
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{53626.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{53626_insid-1_stage5_keypoint.png}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{53626_insid-1_stage3_atten.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{53626_insid-1_mask.PNG}
+		\end{minipage}
+		
+		\vskip5pt
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{68387.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{68387_insid-1_stage5_keypoint.png}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{68387_insid-1_stage3_atten.PNG}
+		\end{minipage}
+		\begin{minipage}[t]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{68387_insid-1_mask.PNG}
+		\end{minipage}
+	\end{minipage}
+	\caption{本文方法得到的可视化对比图}
+	\begin{minipage}{\linewidth}
+	\centering
+	\wuhao
+	(左起分别为输入图像、关键点检测结果、空间注意力可视化结果以及实例分割结果)
+	\end{minipage}
+	\label{fig:megavis}
+\end{figure}
+
+本文通过大量的实验定量与定性实验证明了文章提出的网络结构以及训练方式能够有效地融合实例分割与姿态估计的信息，并通过弱监督学习训练的空间注意力改善这两个任务中的特征融合以及特征表达。本文提出的优化模块能够同时给出较好地关键点与分割的检测结果，并能够一定程度上地改善多人场景下的姿态遮挡问题。
+
+本文将部分可视化效果在图\ref{fig:megavis}中展示。可以看到本文方法在多人场景中达到了预期的效果。网络同时通过注意力机制学习关注了不同人体之间的关系，并且根据该线索预测出被遮挡区域的关键点。
+
+
+
 \section{本章小结}
+本节中，文章在COCO2017数据集上对比了现有方法与本文方法的性能指标，并通过设计多个对比消融实验分别证明了本文中提出的优化模块以及损失函数平衡策略的有效性。通过大量图例以及可视化结果，展示了网络模型同时给出分割结果和姿态估计结果的性能。

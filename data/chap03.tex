@@ -123,6 +123,68 @@ M_t = H_m(F(c) \oplus \tanh(a))
 
 为了设计更加合适的约束，算法应该同时监督每个阶段优化模块的两个输出：实例分割结果$S$与姿态估计结果$K$。本文希望通过显式监督两个现有任务的方式，内隐地得到适合数据的注意力的生成方式。由于现在对于实例分割与姿态估计两个任务的监督方法已经相当成熟，所以这两个监督信息应该能够提供足够的约束来得到能够有较强语义的空间注意力。
 
+\begin{figure}[ht]
+	\centering
+	\begin{minipage}[t]{0.18\linewidth}
+		\includegraphics[width=\linewidth]{6471_insid1_stage1_atten.PNG}
+	\end{minipage}
+	\begin{minipage}[t]{0.18\linewidth}
+		\includegraphics[width=\linewidth]{6471_insid1_stage2_atten.PNG}
+	\end{minipage}
+	\begin{minipage}[t]{0.18\linewidth}
+		\includegraphics[width=\linewidth]{6471_insid1_stage3_atten.PNG}
+	\end{minipage}
+	\begin{minipage}[t]{0.18\linewidth}
+		\includegraphics[width=\linewidth]{6471_insid1_stage4_atten.PNG}
+	\end{minipage}
+	\begin{minipage}[t]{0.18\linewidth}
+		\includegraphics[width=\linewidth]{6471_insid1_stage5_atten.PNG}
+	\end{minipage}
+	\caption{多阶段的优化模块堆叠会导致关键点分支无法提供足够的监督信息}
+	\label{fig:multistageattention}
+\end{figure}
+
+在验证实验中，如图\ref{fig:attention_mask}所示，本文发现过多的优化模块可能并不会对两任务的融合起到很强的作用。因为在单人姿态估计网络中，如图\ref{fig:singleposemultistage}中所展示，更多堆叠卷积层带来的大感受野同样会让网络获得分辨人体的能力。这会让注意力模块失去足够的监督信息而无法学习到如何区分实例的方法。因此在本文中，选择在阶段4以后停止使用优化模块，取而代之使用普通卷积层构成的回归模块替换。为了将这一策略与上文提到的基础方法有所区分，本文将网络后面使用额外+号来区分彼此。
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_image.PNG}
+	\caption{输入图像}
+\end{subfigure}
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_GT.PNG}
+	\caption{真值热图}
+\end{subfigure}
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage1.PNG}
+	\caption{阶段1}
+\end{subfigure}
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage2.PNG}
+	\caption{阶段2}
+\end{subfigure}
+
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage3.PNG}
+	\caption{阶段3}
+\end{subfigure}
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage4.PNG}
+	\caption{阶段4}
+\end{subfigure}
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage5.PNG}
+	\caption{阶段5}
+\end{subfigure}
+\begin{subfigure}{0.2\linewidth}
+	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage6.PNG}
+	\caption{阶段6}
+\end{subfigure}
+\caption{深度网络下的单人姿态估计网络也可以较好地分辨被选中的实例}
+\label{fig:singleposemultistage}
+\end{figure}
+
 \subsection{弱监督与注意力机制}
 \label{subsec:weaksuper_attention}
 
@@ -133,7 +195,59 @@ M_t = H_m(F(c) \oplus \tanh(a))
 
 本文提出的优化模块主要可以让两个任务互相交替优化：第一，姿态估计会想实例分割提供特征图，优化实例分割结果，如公式\eqref{def:fusion}。第二就是来自实例分割的特征会融合进入姿态子网对姿态估计结果进行优化，如公式\eqref{def:keypointhead}。其中第一点比较好实现，因为可以直接设计从姿态估计过程中抽取中间特征图来生成实例分割结果，就如公式\eqref{def:fusion}中的$F$的作用一样。
 
-然而对于第二点而言，直接引入实例分割的监督信息没有办法完全满足多人姿态估计的要求。因为实例分割监督信息不会考虑遮挡情况下的躯干边界。也就是说，如果使用了实例分割结果的监督信息来监督网络自生成的注意力，就难以完成最初设计的帮助网络在有遮挡情况下区分不同人的躯干边界的目标了。同时，现有的数据难以重新标定以满足现有的需求，因为人通过估计得到被遮挡躯干的轮廓不光要消耗比简单分割标定更多的时间，还会因为这个任务过强的主观性导致标定数据的偏差很大，难以获得较为稳定的标定结果。这回导致网络无法在这样标定的数据下很好地收敛。因此，在这样的情况下，网络需要更加宽松的约束来监督注意力的生成。所以，这就是本文为何要引入弱监督的注意力来帮助网络关注特定区域的原因。
+\begin{figure*}
+	\centering
+	\begin{minipage}{\textwidth}
+		\centering
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid0_stage3_mask.png}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid0_stage1_atten.png}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid0_stage2_atten.png}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid0_stage3_atten.png}
+		\end{subfigure}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				\rightline{遮挡人}
+			\end{minipage}
+		\end{sideways}
+	\end{minipage}
+	
+	\vskip2pt
+	\begin{minipage}{\textwidth}
+		\centering
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage3_mask.png}
+			\caption{分割信息}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage1_atten.png}
+			\caption{阶段2注意力}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage2_atten.png}
+			\caption{阶段3注意力}
+		\end{subfigure}
+		\begin{subfigure}{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage3_atten.png}
+			\caption{阶段4注意力}
+		\end{subfigure}
+		\begin{sideways}
+			\begin{minipage}{1cm}
+				\rightline{被遮挡人}
+			\end{minipage}
+		\end{sideways}
+	\end{minipage}
+	\caption{空间注意力能够提供比分割信息更多的划分区域}
+	\label{fig:attention_mask}
+\end{figure*}
+
+然而对于第二点而言，直接引入实例分割的监督信息没有办法完全满足多人姿态估计的要求。如图\ref{fig:attention_mask}所示，实例分割监督信息不会考虑遮挡情况下的躯干边界。也就是说，如果使用了实例分割结果的监督信息来监督网络自生成的注意力，就难以完成最初设计的帮助网络在有遮挡情况下区分不同人的躯干边界的目标了。同时，现有的数据难以重新标定以满足现有的需求，因为人通过估计得到被遮挡躯干的轮廓不光要消耗比简单分割标定更多的时间，还会因为这个任务过强的主观性导致标定数据的偏差很大，难以获得较为稳定的标定结果。这回导致网络无法在这样标定的数据下很好地收敛。因此，在这样的情况下，网络需要更加宽松的约束来监督注意力的生成。所以，这就是本文为何要引入弱监督的注意力来帮助网络关注特定区域的原因。
 
 在如何将注意力携带的传递到下一阶段的方案上，本文的最初目的就是改善本阶段的特征表达，以生成更好地实例分割结果。之所以在这个位置设计$\tanh$门来调整输出范围，是因为注意力不光能够影响特征注意区域，也能够帮助特征强化对应位置。另外，最终生成的经过$\tanh$门映射的注意力$a_{\tanh}$也携带着上一阶段的信息，因此也是有必要将这一部分信息与生成的实例分割特征融合。于是本文希望借助一个变型的残差网络，使用张量加法将生成的注意力$a_{\tanh}$融合输入到分割子网，得到了最终的实例分割结果。
 
@@ -150,13 +264,13 @@ M_t = H_m(F(c) \oplus \tanh(a))
 %		rather than enhance the result
 %			--> This will give more responses
 
-本文监督网络的损失函数可以被分为三部分：边界框损失函数、关键点分支损失函数与实例分割损失函数，如公式\eqref{detection_loss}。为了平衡每个分支的收敛速率，本文设计了$\beta$和$\alpha$分别控制目标检测与实例分割的损失函数权重。对于目标检测监督与实例分割监督而言，损失函数的设计与选择已经相当成熟。如公式\eqref{mask_loss}与公式\eqref{bbox_loss}所示，损失函数在这里使用了交叉熵来度量真实标签与预测向量的差距。只不过与目标检测的损失函数$L_{bbox_{reg}}$定义不一样，实例分割的损失函数$L_{mask_{reg}}$是以多阶段中继监督的形式体现出来的。在本文的实验中为了方便操作，暂时将$\beta$设置为0，$\alpha$设置为0.05来弱化实例分割对于网络整体训练的影响。本文使用了加入中级监督的类似L2范数形式来定义姿态估计分支的损失函数\eqref{key-point_loss}。对于优化模块而言，实例分割与姿态估计两个的任务的损失函数会同时作用于网络自生成的注意力上。这样既能够达到本文最初训练能够完成多任务的优化模块的目标，又能够让网络得到一个更加适应数据的注意力。而通过这样的监督方法，也希望能够证明，适应数据的注意力也能够在语义性上具有较强的可解释性。
+本文监督网络的损失函数可以被分为三部分：边界框损失函数、关键点分支损失函数与实例分割损失函数，如公式\eqref{detection_loss}。为了平衡每个分支的收敛速率，本文设计了$\beta$和$\alpha$分别控制目标检测与实例分割的损失函数权重。对于目标检测监督与实例分割监督而言，损失函数的设计与选择已经相当成熟。如公式\eqref{mask_loss}与公式\eqref{bbox_loss}所示，损失函数在这里使用了交叉熵来度量真实标签与预测向量的差距。只不过与目标检测的损失函数$L_{bbox}$定义不一样，实例分割的损失函数$L_{mask}$是以多阶段中继监督的形式体现出来的。在本文的实验中为了方便操作，暂时将$\beta$设置为0同时固定检测模块的参数。通过将$\alpha$设置为0.1来强化实例分割对于网络整体训练的影响。本文使用了加入中级监督的类似L2范数形式来定义姿态估计分支的损失函数\eqref{key-point_loss}。对于优化模块而言，实例分割与姿态估计两个的任务的损失函数会同时作用于网络自生成的注意力上。这样既能够达到本文最初训练能够完成多任务的优化模块的目标，又能够让网络得到一个更加适应数据的注意力。而通过这样的监督方法，也希望能够证明，适应数据的注意力也能够在语义性上具有较强的可解释性。
 
 \begin{align}
-L_{total} &= \beta L_{bbox_{reg}} + \alpha L_{mask_{reg}} + L_{key-point_{reg}}\label{detection_loss}\\
-L_{bbox_{reg}} &= -\sum_{c \in C}{\hat{p_c} \log{p_c^{*}}}\label{bbox_loss}\\
-L_{mask_{reg}} &= -\sum_{t=1}^{T}\sum_{c \in C}{\hat{s_c} \log{s_c^{*}}}\label{mask_loss}\\
-L_{keypoint_{reg}} &= \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*} \right\|_2}\label{key-point_loss}
+L_{total} &= \beta L_{bbox} + \alpha L_{mask} + L_{key-point}\label{detection_loss}\\
+L_{bbox} &= -\sum_{c \in C}{\hat{p_c} \log{p_c^{*}}}\label{bbox_loss}\\
+L_{mask} &= -\sum_{t=1}^{T}\sum_{c \in C}{\hat{s_c} \log{s_c^{*}}}\label{mask_loss}\\
+L_{key-point} &= \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*} \right\|_2}\label{key-point_loss}
 \end{align}
 
 \subsection{梯度分析}
@@ -190,28 +304,28 @@ L_{keypoint_{reg}} &= \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_
 同时根据在公式\eqref{detection_loss}全局损失的定义，所以损失函数对于分割分支的输出影响可以被可以被推导为：
 \begin{equation*}
 \begin{aligned}
-\frac{\partial L}{\partial M_t} &= \frac{\partial (\alpha L_{mask_{reg}} + L_{key-point_{reg}})}{\partial M_t}\\
-&= \alpha\frac{\partial L_{mask_{reg}}}{\partial M_t} + \frac{\partial L_{key-point_{reg}}}{\partial M_t}
+\frac{\partial L}{\partial M_t} &= \frac{\partial (\alpha L_{mask} + L_{key-point})}{\partial M_t}\\
+&= \alpha\frac{\partial L_{mask}}{\partial M_t} + \frac{\partial L_{key-point}}{\partial M_t}
 \end{aligned}
 \end{equation*}
 
-根据公式\eqref{key-point_loss}中定义，关键点损失函数仅与关键点输出$K$有关，因此不难得出$\frac{L_{key-point_{reg}}}{\partial M_t}=0$。那么在上文中陈述的推导过程中，全局损失函数对于分割分支的输出影响可以被化简为：
+根据公式\eqref{key-point_loss}中定义，关键点损失函数仅与关键点输出$K$有关，因此不难得出$\frac{L_{key-point}}{\partial M_t}=0$。那么在上文中陈述的推导过程中，全局损失函数对于分割分支的输出影响可以被化简为：
 \begin{equation}
 \label{eq:L2Mt}
-\frac{\partial L}{\partial M_t} = \alpha\frac{\partial L_{mask_{reg}}}{\partial M_t}
+\frac{\partial L}{\partial M_t} = \alpha\frac{\partial L_{mask}}{\partial M_t}
 \end{equation}
-同样地，根据公式\eqref{mask_loss}中定义，分割任务损失也仅与分割输出$M$有关，故不难得出$\frac{L_{mask_{reg}}}{\partial K_t}=0$。那么全局损失函数对于关键点分支的输出影响同样可以被推导为
+同样地，根据公式\eqref{mask_loss}中定义，分割任务损失也仅与分割输出$M$有关，故不难得出$\frac{L_{mask}}{\partial K_t}=0$。那么全局损失函数对于关键点分支的输出影响同样可以被推导为
 \begin{equation}
 \label{eq:L2Kt}
-\frac{\partial L}{\partial K_t} = \frac{\partial L_{key-point_{reg}}}{\partial K_t}
+\frac{\partial L}{\partial K_t} = \frac{\partial L_{key-point}}{\partial K_t}
 \end{equation}
 
 结合推论\ref{corollary:loss2xk}与推论\ref{corollary:loss2xm}和公式\eqref{eq:L2Kt}与公式\eqref{eq:L2Kt}，不难得出全局损失函数中的不同部分对于不同分支输入的影响：
 \begin{align}
-\frac{\partial L_{key-point_{reg}}}{\partial X^k_{t-1}} &= a_{\sigma}\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial c}{\partial X_{t-1}^k}\label{def:dloss_keyloss-key}\\
-\frac{\partial L_{key-point_{reg}}}{\partial X^m_{t-1}} &= c\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial a_{\sigma}}{\partial X^m_{t-1}}\label{def:dloss_keyloss-mask}\\
-\frac{\partial L_{mask_{reg}}}{\partial X^k_{t-1}} &= \alpha\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial H_m(c)}\frac{\partial H_m(c)}{\partial c}\frac{\partial c}{\partial X_{t-1}^k}\label{def:dloss_maskloss-key}\\
-\frac{\partial L_{mask_{reg}}}{\partial X^m_{t-1}} &= \alpha\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial a_{\tanh}}\frac{\partial a_{\tanh}}{\partial X^m_{t-1}}\label{def:dloss_maskloss-mask}
+\frac{\partial L_{key-point}}{\partial X^k_{t-1}} &= a_{\sigma}\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial c}{\partial X_{t-1}^k}\label{def:dloss_keyloss-key}\\
+\frac{\partial L_{key-point}}{\partial X^m_{t-1}} &= c\frac{\partial L}{\partial K_t}\frac{\partial K_t}{\partial ca_{\sigma}}\frac{\partial a_{\sigma}}{\partial X^m_{t-1}}\label{def:dloss_keyloss-mask}\\
+\frac{\partial L_{mask}}{\partial X^k_{t-1}} &= \alpha\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial H_m(c)}\frac{\partial H_m(c)}{\partial c}\frac{\partial c}{\partial X_{t-1}^k}\label{def:dloss_maskloss-key}\\
+\frac{\partial L_{mask}}{\partial X^m_{t-1}} &= \alpha\frac{\partial L}{\partial M_t}\frac{\partial M_t}{\partial a_{\tanh}}\frac{\partial a_{\tanh}}{\partial X^m_{t-1}}\label{def:dloss_maskloss-mask}
 \end{align}
 其中，公式\eqref{def:dloss_keyloss-key}描述关键点信息对于关键点分支输入的影响；公式\eqref{def:dloss_keyloss-mask}描述了关键点监督信息对于优化模块下支输入的影响。同样地，分割损失函数对于上下支的影响也可以分别描述为公式\eqref{def:dloss_maskloss-key}与公式\eqref{def:dloss_maskloss-mask}。
 
@@ -222,6 +336,8 @@ L_{keypoint_{reg}} &= \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_
 
 \subsection{训练策略}
 \label{subsec:trainingstrategy}
+
+本文在训练过程中使用数据扩增技术让网络获得更好泛化性。本文使用了旋转、缩放和检测框抖动技术来对数据进行扩增。本文在$[-30^\circ, +30^\circ]$的范围内随机选取角度同时对训练数据与输入特征进行旋转。同时，本文还在$[0.7, 1.3]$范围内随机选取比例对训练数据与输入特征进行缩放，缩放使用双线性插值进行对尺寸的调整。最终，为了保证网络对于不准确检测结果的适应性，本文对训练用的目标框进行了随机抖动扩增。在本节中所有的随机方式输出都服从高斯分布。
 
 本文使用了两阶段的训练策略来监督整个网络。在第一阶段，先训练检测部分使用对应部分的损失函数进行训练至大致收敛，接着加入融合优化部分的多阶段优化模块使用整体损失函数进行监督。在第一阶段的检测网络训练策略上，仅针对目标检测损失函数进行训练，学习率为0.05，并采取学习率阶梯下降的方法，间隔30代下降一次学习率，每次下降的系数为0.5。在样本批为8的设定下整体训练120代，其中代长为1000步。在第二阶段的训练中，训练策略主要倾向于优化融合优化的部分。对网络整体损失函数的学习率被设定为0.0005，间隔60代下降一次学习率，学习率下降策略同样采取阶梯式，每次下降系数为0.333。网络在批大小为1的条件下整体训练200代，其中代长为1000步。
 
