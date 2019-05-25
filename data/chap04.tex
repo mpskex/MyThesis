@@ -116,11 +116,7 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 		\begin{subfigure}{0.23\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid1_stage3_atten.png}
 		\end{subfigure}
-		\begin{sideways}
-			\begin{minipage}{1cm}
-				\rightline{遮挡人}
-			\end{minipage}
-		\end{sideways}
+		\rotatebox[origin=c]{90}{\centering 遮挡人}
 	\end{minipage}
 	
 	\vskip2pt
@@ -138,20 +134,16 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
 			\caption{阶段4}
 		\end{subfigure}
-		\begin{sideways}
-			\begin{minipage}{1cm}
-				\rightline{被遮挡人}
-			\end{minipage}
-		\end{sideways}
+		\rotatebox[origin=c]{90}{\centering 被遮挡人}
 	\end{minipage}
 	\caption{在$\alpha=0.1$遮挡情况下的空间注意力可视化结果}
 	\label{fig:attenvis}
 \end{figure}
 
-在全局损失函数(公式\eqref{detection_loss})中不同的$\alpha$会影响注意力的生成。根据\ref{subsec:gradient}节中的推导，更低的$\alpha$会引导注意力在训练过程中缺少来自实例分割的引导。这会让注意力关注的区域更加泛化，难以引导关键点分支关注正确的区域。本文使用不同的$alpha$取值训练网络，同来对比生成的注意力区域的精细程度。由于网络生成的注意力对关键点任务十分重要，因此注意力生成的质量可以间接表明模型的性能。
+在全局损失函数(公式\eqref{detection_loss})中不同的$\alpha$会影响注意力的生成。根据\ref{subsec:gradient}节中的推导，更低的$\alpha$会引导注意力在训练过程中缺少来自实例分割的引导。这会让注意力关注的区域更加泛化，难以引导关键点分支关注正确的区域。本文使用不同的$\alpha$取值训练网络，同来对比生成的注意力区域的精细程度。由于网络生成的注意力对关键点任务十分重要，因此注意力生成的质量可以间接表明模型的性能。
 
 
-\begin{figure}[ht]
+\begin{figure}[h]
 	\centering
 	\begin{minipage}{\linewidth}
 		\centering
@@ -161,11 +153,7 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 		\begin{subfigure}{0.3\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid1_stage1_atten_alpha.png}
 		\end{subfigure}
-		\begin{sideways}
-			\begin{minipage}{1cm}
-				\rightline{遮挡人}
-			\end{minipage}
-		\end{sideways}
+		\rotatebox[origin=c]{90}{\centering 遮挡人}
 	\end{minipage}
 	
 	\vskip2pt
@@ -179,17 +167,61 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 			\includegraphics[width=\linewidth]{60507_insid12_stage1_atten_alpha.png}
 			\caption{$\alpha=0.01$}
 		\end{subfigure}
-		\begin{sideways}
-			\begin{minipage}{1cm}
-				\rightline{被遮挡人}
-			\end{minipage}
-		\end{sideways}
+		\rotatebox[origin=c]{90}{\centering 被遮挡人}
 	\end{minipage}
 	\caption{在$\alpha$取值下训练得到的遮挡情况下的空间注意力可视化结果}
 	\label{fig:attenalpha}
 \end{figure}
 
 正如上文所推测，更小的$\alpha$取值非但没有让注意力更多地关注关键点区域，反而让注意力生成更加偏离实例分割的结果。这样与本文希望注意力能够达到的目标相悖，因而在实验中选取了$\alpha=0.1$作为损失函数中平衡实例分割与关键点影响的因子来训练网络。
+
+同时，通过实验发现(如图\ref{fig:failcase})，在注意力无法区分单个人体区域的时候，会比较明显地影响关键点定位结果。对于注意力而言，在过多遮挡的场景中辨析单个人体是一个较为困难的任务。由于缺乏足够的关键点与实例分割检测结果，自生成的空间注意力会无法将两人分开。这也是现有方法中普遍存在的问题。但在轻度遮挡的情况下，本文方法仍拥有区分出不同人体区域的能力。
+
+\begin{figure}[h]
+	\centering
+	\begin{minipage}[t]{\linewidth}
+		\centering
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872.png}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872_insid1_stage1_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872_insid1_stage2_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872_insid1_stage3_atten.png}
+		\end{subfigure}
+		\rotatebox[origin=lt]{90}{遮挡人}
+	\end{minipage}
+
+	\vskip2pt
+	\begin{minipage}{\linewidth}
+		\centering
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872_insid-1_stage3_keypoint.png}
+			\caption{输入图像与姿态}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872_insid0_stage1_atten.png}
+			\caption{阶段2}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872_insid0_stage2_atten.png}
+			\caption{阶段3}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.22\linewidth}
+			\includegraphics[width=\linewidth]{872_insid0_stage3_atten.png}
+			\caption{阶段4}
+		\end{subfigure}
+		\rotatebox[origin=lt]{90}{被遮挡人}
+	\end{minipage}
+	\caption{极端遮挡场景下的注意力可视化结果}
+	\label{fig:failcase}
+\end{figure}
+
+
 
 \section{实验效果}
 \label{sec:demo}
@@ -199,100 +231,100 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 	\begin{minipage}[t]{\linewidth}
 		\centering
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885.PNG}
+			\includegraphics[width=\linewidth]{885.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid-1_stage5_keypoint.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid-1_stage3_atten.PNG}
+			\includegraphics[width=\linewidth]{885_insid-1_stage3_atten.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid-1_mask.PNG}
+			\includegraphics[width=\linewidth]{885_insid-1_mask.png}
 		\end{minipage}
 		
 		\vskip5pt
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{1000.PNG}
+			\includegraphics[width=\linewidth]{1000.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{1000_insid-1_stage5_keypoint.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{1000_insid-1_stage3_atten.PNG}
+			\includegraphics[width=\linewidth]{1000_insid-1_stage3_atten.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{1000_insid-1_mask.PNG}
+			\includegraphics[width=\linewidth]{1000_insid-1_mask.png}
 		\end{minipage}
 		
 		\vskip5pt
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{13729.PNG}
+			\includegraphics[width=\linewidth]{13729.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{13729_insid-1_stage5_keypoint.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{13729_insid-1_stage3_atten.PNG}
+			\includegraphics[width=\linewidth]{13729_insid-1_stage3_atten.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{13729_insid-1_mask.PNG}
+			\includegraphics[width=\linewidth]{13729_insid-1_mask.png}
 		\end{minipage}
 		
 		\vskip5pt
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{18491.PNG}
+			\includegraphics[width=\linewidth]{18491.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{18491_insid-1_stage5_keypoint.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{18491_insid-1_stage3_atten.PNG}
+			\includegraphics[width=\linewidth]{18491_insid-1_stage3_atten.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{18491_insid-1_mask.PNG}
+			\includegraphics[width=\linewidth]{18491_insid-1_mask.png}
 		\end{minipage}
 		
 		\vskip5pt
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{38829.PNG}
+			\includegraphics[width=\linewidth]{38829.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{38829_insid-1_stage5_keypoint.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{38829_insid-1_stage3_atten.PNG}
+			\includegraphics[width=\linewidth]{38829_insid-1_stage3_atten.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{38829_insid-1_mask.PNG}
+			\includegraphics[width=\linewidth]{38829_insid-1_mask.png}
 		\end{minipage}
 		
 		\vskip5pt
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{53626.PNG}
+			\includegraphics[width=\linewidth]{53626.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{53626_insid-1_stage5_keypoint.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{53626_insid-1_stage3_atten.PNG}
+			\includegraphics[width=\linewidth]{53626_insid-1_stage3_atten.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{53626_insid-1_mask.PNG}
+			\includegraphics[width=\linewidth]{53626_insid-1_mask.png}
 		\end{minipage}
 		
 		\vskip5pt
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{68387.PNG}
+			\includegraphics[width=\linewidth]{68387.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{68387_insid-1_stage5_keypoint.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{68387_insid-1_stage3_atten.PNG}
+			\includegraphics[width=\linewidth]{68387_insid-1_stage3_atten.png}
 		\end{minipage}
 		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{68387_insid-1_mask.PNG}
+			\includegraphics[width=\linewidth]{68387_insid-1_mask.png}
 		\end{minipage}
 	\end{minipage}
 	\caption{本文方法得到的可视化对比图}

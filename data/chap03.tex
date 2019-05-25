@@ -125,21 +125,26 @@ M_t = H_m(F(c) \oplus \tanh(a))
 
 \begin{figure}[ht]
 	\centering
-	\begin{minipage}[t]{0.18\linewidth}
+	\begin{subfigure}{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage1_atten.PNG}
-	\end{minipage}
-	\begin{minipage}[t]{0.18\linewidth}
+		\caption{阶段2}
+	\end{subfigure}
+	\begin{subfigure}{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage2_atten.PNG}
-	\end{minipage}
-	\begin{minipage}[t]{0.18\linewidth}
+		\caption{阶段3}
+	\end{subfigure}
+	\begin{subfigure}{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage3_atten.PNG}
-	\end{minipage}
-	\begin{minipage}[t]{0.18\linewidth}
+		\caption{阶段3}
+	\end{subfigure}
+	\begin{subfigure}{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage4_atten.PNG}
-	\end{minipage}
-	\begin{minipage}[t]{0.18\linewidth}
+		\caption{阶段4}
+	\end{subfigure}
+	\begin{subfigure}{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage5_atten.PNG}
-	\end{minipage}
+		\caption{阶段5}
+	\end{subfigure}
 	\caption{多阶段的优化模块堆叠会导致关键点分支无法提供足够的监督信息}
 	\label{fig:multistageattention}
 \end{figure}
@@ -211,11 +216,7 @@ M_t = H_m(F(c) \oplus \tanh(a))
 		\begin{subfigure}{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage3_atten.png}
 		\end{subfigure}
-		\begin{sideways}
-			\begin{minipage}{1cm}
-				\rightline{遮挡人}
-			\end{minipage}
-		\end{sideways}
+		\rotatebox[origin=c]{90}{遮挡人}
 	\end{minipage}
 	
 	\vskip2pt
@@ -237,11 +238,7 @@ M_t = H_m(F(c) \oplus \tanh(a))
 			\includegraphics[width=\linewidth]{885_insid1_stage3_atten.png}
 			\caption{阶段4注意力}
 		\end{subfigure}
-		\begin{sideways}
-			\begin{minipage}{1cm}
-				\rightline{被遮挡人}
-			\end{minipage}
-		\end{sideways}
+		\rotatebox[origin=c]{90}{被遮挡人}
 	\end{minipage}
 	\caption{空间注意力能够提供比分割信息更多的划分区域}
 	\label{fig:attention_mask}
