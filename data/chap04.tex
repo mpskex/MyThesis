@@ -43,27 +43,26 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 		\noindent\rule{0.25\linewidth}{1pt} \\
 		\footnotesize
 		1: 使用直接连接的4个堆叠的优化模块，在本文提出的整体训练策略下收敛的模型。\\
-		2: 使用2个$7\times7$组成的回归模块和4个堆叠的优化模块，在本文提出的整体训练策略下收敛的模型。
+		2: 为了增加网络感受野而使用后置的类似基准方法中出现的优化模块，在本文提出的整体训练策略下收敛的模型。
 	\end{minipage}
 \end{table*}
 
-在表\ref{tab:mAPCOCObenchmark}中，可以明显看到本文在宽松条件下（OKS=0.5）的关键点准确度明显优于本文复现的自顶向下框架和SHN网络的结果。这一结果要归功于网络中使用弱监督学习方法监督的注意力机制，其生成的关注区域帮助网络生成更加紧凑的关键点结果。同时在小目标检测\footnote{在COCO数据集中，小目标通常指边界框面积小于$64^2$的目标。}中明显优于传统的自顶向下的方法。虽然在更高精度下的指标比SHN略差，但是差别并不明显，同时在整体的指标，也就是积分得到的平均准确度中，能够比SHN的性能更优。
+首先需要关注复现的基准方法相对于本文提出的方法的性能提升。很明显这两种使用优化模块的策略均比基准方法更优或表现相当。对于本文方法$^1$，除在$AP_{OKS=0.75}$的指标下比复现方法略低以外，该策略下的其他指标数值均优于复现的基准方法。而之后在此基础上额外增加后置类似基准方法中出现的优化模块的本文方法+$^2$同样在原有的基础上提高了$0.8mAP$，但是在$AP_{OKS=0.75}$的指标上虽然超过了复现方法，但仍低于用于对比的其他方法。对比方法虽然在$AP_{OKS=0.75}$与$AP_L$指标上略高于本文方法，但是本文在$AP_{OKS=0.5}$指标上远远高于对比方法。整体而言，本文方法比现有的自顶向下的堆叠沙漏网络在性能上高出$0.7mAP$。
 
-% TODO: 计算量对比
-
+相对于在表\ref{tab:mAPCOCObenchmark}中，可以明显看到本文在宽松条件下（OKS=0.5）的关键点准确度明显优于本文复现的自顶向下框架和SHN网络的结果。这一结果要归功于网络中使用弱监督学习方法监督的注意力机制，其生成的关注区域帮助网络生成更加紧凑的关键点结果。同时在小目标检测\footnote{在COCO数据集中，小目标通常指边界框面积小于$64^2$的目标。}中明显优于传统的自顶向下的方法。大目标中出现的性能损失主要是来源于直接的特征剪裁方法。在其他自顶向下方法中，普遍采取的特征提取方法是将原图像根据检测框裁剪，再送入姿态估计网络。本结构中使用的剪裁策略是直接使用特征进行剪裁。这会导致较大尺度的特征信息损失更多，因此可能会造成在更大尺寸图像上的姿态估计结果精度下降的问题。本文方法在高精度要求的指标下略微低于对比方法。这可能是由于损失函数相互竞争而造成的后果。本文通过在损失函数中设定合适的$\alpha$值来确保竞争尽可能小。同时，整体层面上，本文方法仍然要由于基线方法与堆叠沙漏网络。
 
 \section{消融实验与分析}
 \label{sec:ablation}
 本节中文章设计了消融实验验证优化模块的作用以及有效性。本文提出了多种消融策略来控制优化模块中不同部件出现，从而通过量化指标和可视化效果来量化优化模块对提高算法性能的贡献。
 \subsection{消融策略}
 \label{subsec:selfstrategy}
-由于本文提出了一种能够融合实例分割信息的新结构，因此需要设计自对比实验来证明文章提出的结构能够改善基线方法
+由于本文提出了一种能够融合实例分割信息的新结构，因此需要设计自对比实验来证明文章提出的结构能够改善基线方法。本文中除了多任务融合+策略使用了6个堆叠的优化模块\footnote{由于过多的优化模块不能帮助优化模块细化注意力(如图\ref{fig:multistageattention})，该策略中最后两个优化模块没有使用注意力机制融合两分支。}以外，其余所有方法都是用了4个堆叠的优化模块。本文通过摘除优化模块中对应的网络结构来完成用于模块验证的消融实验。
 本文设计了三种自对比的网络结构策略：
 \begin{itemize}
-	\item \textbf{单任务无融合}：不使用多任务分支的简单结构也不使用注意力机制的网络结构。
-	\item \textbf{多任务无融合}：使用多任务分支但不使用注意力机制的网络结构\footnote{多任务分支指加入实例分割任务训练，但不使用注意力交叉与传递特征信息。}。
-	\item \textbf{多任务融合}：使用多任务分支且使用注意力机制的网络结构。
-	\item \textbf{多任务融合+}：使用多任务分支且使用注意力机制的网络结构，并使用更多的堆叠的网络模块。
+	\item \textbf{单任务无融合}：与复现基准方法相同，不使用图\ref{fig:RefineNet}中对应的注意力转换模块、分割子网，仅留下优化模块中的共享卷积层与姿态子网的简单基准网络结构。
+	\item \textbf{多任务无融合}：除单任务无融合网络结构中描述的策略以外，额外使用图\ref{fig:RefineNet}中的分割子网，但不使用注意力转换模块以及两个卷积门将生成的注意力融合进入两分支的多任务网络结构。
+	\item \textbf{多任务融合}：使用图\ref{fig:RefineNet}中所有的卷积层，并使用弱监督下的空间注意力融合两分支特征的网络结构。
+	\item \textbf{多任务融合+}：在多任务融合网络结构的基础上，加入后置的类似单任务无融合中出现的优化模块来扩大网络感受野的网络结构策略。
 \end{itemize}
 
 \subsection{消融性能实验}
@@ -89,7 +88,7 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 			单任务无融合 & 41.2 & 71.3 & 45.9& 34.2& 47.4\\
 			多任务无融合 & 38.8 & 78.4 & 25.6 & 30.1 & 37.7 \\
 			多任务有融合 & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
-			多任务有融合+ & 46.7 & 83.4 & 46.6 & 45.1 & 53.2 \\
+			多任务有融合+ & \textbf{46.7} & \textbf{83.4} & \textbf{46.6} & \textbf{45.1} & \textbf{53.2} \\
 			\hline
 		\end{tabular}
 	\end{minipage}
@@ -105,36 +104,48 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 
 \begin{figure}[h]
 	\centering
-	\begin{minipage}{\textwidth}
+	\begin{subfigure}{0.3\linewidth}
+		\includegraphics[width=\linewidth]{60507.png}
+		\caption{原始图像}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
 		\centering
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid1_stage1_atten.png}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid1_stage2_atten.png}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid1_stage3_atten.png}
 		\end{subfigure}
-		\rotatebox[origin=c]{90}{\centering 遮挡人}
-	\end{minipage}
-	
-	\vskip2pt
-	\begin{minipage}{\textwidth}
+		\caption{遮挡人}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
 		\centering
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid12_stage1_atten.png}
-			\caption{阶段2}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid12_stage2_atten.png}
-			\caption{阶段3}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
-			\caption{阶段4}
 		\end{subfigure}
-		\rotatebox[origin=c]{90}{\centering 被遮挡人}
+		\caption{被遮挡人}
+	\end{subfigure}
+	\begin{minipage}{0.05\linewidth}
+		\rotatebox[origin=c]{90}{\centering 阶段2}
+		
+		\vskip2cm
+		\rotatebox[origin=c]{90}{\centering 阶段3}
+		
+		\vskip2cm
+		\rotatebox[origin=c]{90}{\centering 阶段4}
 	\end{minipage}
 	\caption{在$\alpha=0.1$遮挡情况下的空间注意力可视化结果}
 	\label{fig:attenvis}
@@ -145,28 +156,32 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 
 \begin{figure}[h]
 	\centering
-	\begin{minipage}{\linewidth}
+	\begin{subfigure}{0.3\textwidth}
 		\centering
-		\begin{subfigure}{0.3\linewidth}
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid1_stage3_atten.png}
 		\end{subfigure}
-		\begin{subfigure}{0.3\linewidth}
+		\vskip2pt
+		\begin{subfigure}{\linewidth}
+			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
+		\end{subfigure}
+		\caption{$\alpha=0.1$}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid1_stage1_atten_alpha.png}
 		\end{subfigure}
-		\rotatebox[origin=c]{90}{\centering 遮挡人}
-	\end{minipage}
-	
-	\vskip2pt
-	\begin{minipage}{\linewidth}
-		\centering
-		\begin{subfigure}{0.3\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
-			\caption{$\alpha=0.1$}
-		\end{subfigure}
-		\begin{subfigure}{0.3\linewidth}
+		\vskip2pt
+		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth]{60507_insid12_stage1_atten_alpha.png}
-			\caption{$\alpha=0.01$}
 		\end{subfigure}
+		\caption{$\alpha=0.01$}
+	\end{subfigure}
+	\begin{minipage}{0.05\linewidth}
+		\rotatebox[origin=c]{90}{\centering 遮挡人}
+		
+		\vskip2cm
 		\rotatebox[origin=c]{90}{\centering 被遮挡人}
 	\end{minipage}
 	\caption{在$\alpha$取值下训练得到的遮挡情况下的空间注意力可视化结果}
@@ -179,43 +194,55 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 
 \begin{figure}[h]
 	\centering
-	\begin{minipage}[t]{\linewidth}
+	\begin{subfigure}[t]{0.22\textwidth}
 		\centering
-		\begin{subfigure}[t]{0.22\linewidth}
+		\begin{subfigure}[t]{\linewidth}
 			\includegraphics[width=\linewidth]{872.png}
 		\end{subfigure}
-		\begin{subfigure}[t]{0.22\linewidth}
-			\includegraphics[width=\linewidth]{872_insid1_stage1_atten.png}
-		\end{subfigure}
-		\begin{subfigure}[t]{0.22\linewidth}
-			\includegraphics[width=\linewidth]{872_insid1_stage2_atten.png}
-		\end{subfigure}
-		\begin{subfigure}[t]{0.22\linewidth}
-			\includegraphics[width=\linewidth]{872_insid1_stage3_atten.png}
-		\end{subfigure}
-		\rotatebox[origin=lt]{90}{遮挡人}
-	\end{minipage}
-
-	\vskip2pt
-	\begin{minipage}{\linewidth}
-		\centering
-		\begin{subfigure}[t]{0.22\linewidth}
+		\vskip2pt
+		\begin{subfigure}[t]{\linewidth}
 			\includegraphics[width=\linewidth]{872_insid-1_stage3_keypoint.png}
 			\caption{输入图像与姿态}
 		\end{subfigure}
-		\begin{subfigure}[t]{0.22\linewidth}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.22\textwidth}
+		\centering
+		\begin{subfigure}[t]{\linewidth}
+			\includegraphics[width=\linewidth]{872_insid1_stage1_atten.png}
+		\end{subfigure}
+		\vskip2pt
+		\begin{subfigure}[t]{\linewidth}
 			\includegraphics[width=\linewidth]{872_insid0_stage1_atten.png}
 			\caption{阶段2}
 		\end{subfigure}
-		\begin{subfigure}[t]{0.22\linewidth}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.22\textwidth}
+		\centering
+		\begin{subfigure}[t]{\linewidth}
+			\includegraphics[width=\linewidth]{872_insid1_stage2_atten.png}
+		\end{subfigure}
+		\vskip2pt
+		\begin{subfigure}[t]{\linewidth}
 			\includegraphics[width=\linewidth]{872_insid0_stage2_atten.png}
 			\caption{阶段3}
 		\end{subfigure}
-		\begin{subfigure}[t]{0.22\linewidth}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.22\textwidth}
+		\centering
+		\begin{subfigure}[t]{\linewidth}
+			\includegraphics[width=\linewidth]{872_insid1_stage3_atten.png}
+		\end{subfigure}
+		\vskip2pt
+		\begin{subfigure}[t]{\linewidth}
 			\includegraphics[width=\linewidth]{872_insid0_stage3_atten.png}
 			\caption{阶段4}
 		\end{subfigure}
-		\rotatebox[origin=lt]{90}{被遮挡人}
+	\end{subfigure}
+	\begin{minipage}{0.05\linewidth}
+		\rotatebox[origin=c]{90}{\centering 遮挡人}
+		
+		\vskip2cm
+		\rotatebox[origin=c]{90}{\centering 被遮挡人}
 	\end{minipage}
 	\caption{极端遮挡场景下的注意力可视化结果}
 	\label{fig:failcase}
@@ -223,116 +250,115 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 
 
 
-\section{实验效果}
+\section{视觉效果与分析}
 \label{sec:demo}
 
 \begin{figure}[htbp]
 	\centering
 	\begin{minipage}[t]{\linewidth}
 		\centering
-		\begin{minipage}[t]{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid-1_stage5_keypoint.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid-1_stage3_atten.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid-1_mask.png}
-		\end{minipage}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{885_insid-1_stage5_keypoint.png}
+		\end{subfigure}
 		
 		\vskip5pt
-		\begin{minipage}[t]{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{1000.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{1000_insid-1_stage5_keypoint.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{1000_insid-1_stage3_atten.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{1000_insid-1_mask.png}
-		\end{minipage}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000_insid-1_stage5_keypoint.png}
+		\end{subfigure}
 		
 		\vskip5pt
-		\begin{minipage}[t]{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{13729.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{13729_insid-1_stage5_keypoint.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{13729_insid-1_stage3_atten.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{13729_insid-1_mask.png}
-		\end{minipage}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{13729_insid-1_stage5_keypoint.png}
+		\end{subfigure}
 		
 		\vskip5pt
-		\begin{minipage}[t]{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{18491.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{18491_insid-1_stage5_keypoint.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{18491_insid-1_stage3_atten.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{18491_insid-1_mask.png}
-		\end{minipage}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{18491_insid-1_stage5_keypoint.png}
+		\end{subfigure}
 		
 		\vskip5pt
-		\begin{minipage}[t]{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{38829.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{38829_insid-1_stage5_keypoint.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{38829_insid-1_stage3_atten.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{38829_insid-1_mask.png}
-		\end{minipage}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{38829_insid-1_stage5_keypoint.png}
+		\end{subfigure}
 		
 		\vskip5pt
-		\begin{minipage}[t]{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{53626.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{53626_insid-1_stage5_keypoint.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{53626_insid-1_stage3_atten.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{53626_insid-1_mask.png}
-		\end{minipage}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{53626_insid-1_stage5_keypoint.png}
+		\end{subfigure}
 		
 		\vskip5pt
-		\begin{minipage}[t]{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{68387.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{68387_insid-1_stage5_keypoint.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+			\caption{输入图像}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{68387_insid-1_stage3_atten.png}
-		\end{minipage}
-		\begin{minipage}[t]{0.23\linewidth}
+			\caption{空间注意力}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{68387_insid-1_mask.png}
-		\end{minipage}
+			\caption{实例分割}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{68387_insid-1_stage5_keypoint.png}
+			\caption{关键点检测}
+		\end{subfigure}
 	\end{minipage}
 	\caption{本文方法得到的可视化对比图}
-	\begin{minipage}{\linewidth}
-	\centering
-	\wuhao
-	(左起分别为输入图像、关键点检测结果、空间注意力可视化结果以及实例分割结果)
-	\end{minipage}
 	\label{fig:megavis}
 \end{figure}
 

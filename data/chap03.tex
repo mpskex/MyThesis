@@ -5,7 +5,7 @@
 \section{方法框架}
 \label{sec:methodoverview}
 %   This part intends to state the overall idea
-本方法使用基于残差网络\footnote{残差网络，简称ResNet, 全称Residual Network}与特征金字塔网络\footnote{特征金字塔网络，简称FPN, 全程Feature Pyramid Network}结构的网络框架作为特征提取的骨架，为模型提供各个尺度的特征图。在特征提取部分之后，网络可以分为目标检测与姿态估计和融合回归两个步骤。在检测部分中，网络预测出目标的边界框，粗略的关键点预测和实例分割结果。而在融合优化网络中，算法会接受从检测部分产生的结果并将它们一同互相交汇并一起回归。而且，在融合优化网络的设计中，本文采取了多阶段的堆叠和中继监督的策略来共同精炼关键点与实例分割的结果。这种结构是受到CPM\cite{wei2016convolutional}的启发而设计的。同时，为了有效地融合实例分割与姿态估计的结果，本文引入注意力机制，使其根据实例分割的生成注意力关注网络对应的区域，从而达到方法最初设计的目的，也就是解决多人检测下姿态遮挡的问题。同时，考虑到姿态估计的信息对实例分割也有促进作用，本文设计了双流的网络结构让模型在每个阶段都能同时预测分割结果和姿态估计结果，并送入下一阶段继续优化。网络的整体结果如图\ref{fig:Overall}
+网络的整体结果如图\ref{fig:Overall}所示。本方法使用基于残差网络\footnote{残差网络，简称ResNet, 全称Residual Network}与特征金字塔网络\footnote{特征金字塔网络，简称FPN, 全程Feature Pyramid Network}结构的网络框架作为特征提取的骨架，为模型提供各个尺度的特征图。在特征提取部分之后，网络可以分为目标检测与姿态估计和融合回归两个步骤。在检测部分中，网络预测出目标的边界框，粗略的关键点预测和实例分割结果。而在融合优化网络中，算法会接受从检测部分产生的结果并将它们一同互相交汇并一起回归。而且，在融合优化网络的设计中，本文采取了多阶段的堆叠和中继监督的策略来共同精炼关键点与实例分割的结果。这种结构是受到CPM\cite{wei2016convolutional}的启发而设计的。同时，为了有效地融合实例分割与姿态估计的结果，本文引入注意力机制，使其根据实例分割的生成注意力关注网络对应的区域，从而达到方法最初设计的目的，也就是解决多人检测下姿态遮挡的问题。同时，考虑到姿态估计的信息对实例分割也有促进作用，本文设计了双流的网络结构让模型在每个阶段都能同时预测分割结果和姿态估计结果，并送入下一阶段继续优化。
 
 \begin{figure*}[htbp]	
 	\centering
@@ -17,17 +17,14 @@
 %	ROI Extraction
 %	key-point & Mask Prdiction
 %		Stage One's Prediction
-检测模块由特征提取网络与检测回归网络两个模块组成。在特征提取网络中，模型通过特征提取器$E$得到图像$I$来自网络各个尺度的特征$F=\{f_1, f_2, ..., f_5\}$。这些特征被金字塔兴趣区域对齐层$P$\footnote{金字塔兴趣区域对齐层，简称Pyramid RoI Align Layer, 全称Pyramid Region of Interest Align Layer}通过双线性插值的方法对齐至同样的尺寸。每个图像中只有来自特定尺度$k$的特征图$f_k$被选中并被输入至接下来的检测回归网络中。这个被选中的特征被分别送入了实例分割分支$B_m$与姿态估计分支$B_k$，分别得到了实例分割结果$M=\{m^1, m^2, ..., m^n\}$与姿态估计结果$K=\{k^1, k^2, ..., k^n\}$。这些中间结果会被输入到融合优化阶段进行多阶段的回归。为了与融合优化网络中的优化模块输出的名称保持一致，由检测回归网络生成的分割结果$M$与$K$被标记作多阶段中的第一阶段输出$M_1$与$K_1$，如公式\eqref{def:detectnet}所示。
-
+检测模块由特征提取网络与检测回归网络两个模块组成。在特征提取网络中，模型通过特征提取器$E$得到图像$I$来自网络各个尺度的特征$F=\{f_1, f_2, ..., f_5\}$。这些特征被金字塔兴趣区域对齐层$P$\footnote{金字塔兴趣区域对齐层，简称Pyramid RoI Align Layer, 全称Pyramid Region of Interest Align Layer}通过双线性插值的方法对齐至同样的尺寸。每个图像中只有来自特定尺度$k$的特征图$f_k$被选中并被输入至接下来的检测回归网络中。这个被选中的特征被分别送入了实例分割分支$B_m$与姿态估计分支$B_k$，分别得到了实例分割结果$M=\{m^1, m^2, ..., m^n\}$与姿态估计结果$K=\{k^1, k^2, ..., k^n\}$。这些中间结果会被输入到融合优化阶段进行多阶段的回归。为了与融合优化网络中的优化模块输出的名称保持一致，由检测回归网络生成的分割结果$M$与$K$被标记作多阶段中的第一阶段输出$M_1$与$K_1$，这里可以用数学公式描述为：
 \begin{equation}
 \label{def:detectnet}
 M_1, K_1 = B_m(P(E(I))), B_k(P(E(I)))
 \end{equation}
 
 %		Stage 2+'s Prediction
-如图\ref{fig:RefineNet}所示，在融合优化阶段的第$t(t>2)$阶段，单个优化模块接收来自特征提取器$E$的特征$f_k$、在阶段$t-1$中得到的姿态估计结果$K_{t-1}$与实例分割结果$M_{t-1}$，其中$\otimes$代表张量连接操作。整个网络有主要设计亮点可以归纳为三点。第一是本文引入了注意力机制让网络关注具体的区域，本文设计了注意力转换模块来让生成一个合适的注意力与特征图融合，最后得到关键点预测结果$K_t$。第二，网络还会根据姿态估计的中间结果，也就是一些更偏向于得到关键点预测的特征，生成实例分割的结果。这让网络会根据来自姿态估计的信息修正实例分割的结果。最后，由注意力转换模块生成的注意力还会与从姿态估计那一支生成的中间结果融合，最终生成的实例分割的优化结果$M_t$。因此，整个优化模块$R$可以被抽象为形如公式\eqref{def:refinenet}的函数。
-
-
+在融合优化阶段的第$t(t>2)$阶段，单个优化模块接收来自特征提取器$E$的特征$f_k$、在阶段$t-1$中得到的姿态估计结果$K_{t-1}$与实例分割结果$M_{t-1}$，其中$\otimes$代表张量连接操作。整个网络有主要设计亮点可以归纳为三点。第一是本文引入了注意力机制让网络关注具体的区域，本文设计了注意力转换模块来让生成一个合适的注意力与特征图融合，最后得到关键点预测结果$K_t$。第二，网络还会根据姿态估计的中间结果，也就是一些更偏向于得到关键点预测的特征，生成实例分割的结果。这让网络会根据来自姿态估计的信息修正实例分割的结果。最后，由注意力转换模块生成的注意力还会与从姿态估计那一支生成的中间结果融合，最终生成的实例分割的优化结果$M_t$。因此，整个优化模块$R$可以被抽象为形如：
 \begin{equation}
 \label{def:refinenet}
 M_t, K_t = R(M_{t-1}\otimes f_k, K_{t-1}\otimes f_k)
@@ -50,8 +47,16 @@ M_t, K_t = R(M_{t-1}\otimes f_k, K_{t-1}\otimes f_k)
 
 \begin{figure*}[htbp]	
 	\centering
-	\includegraphics[width=0.8\textwidth]{FPN.png}
-	\caption{特征金字塔结构：左侧为特征金字塔中特征融合的方式；右侧为融合结构设计。}
+	\begin{subfigure}[b]{0.4\textwidth}
+		\includegraphics[width=\linewidth]{FPN_a.png}
+		\caption{特征金字塔中的特征融合}
+	\end{subfigure}
+	\hskip1.5cm
+	\begin{subfigure}[b]{0.4\textwidth}
+		\includegraphics[width=\linewidth]{FPN_b.png}
+		\caption{单尺寸特征下的融合结构设计}
+	\end{subfigure}
+	\caption{特征金字塔中的结构设计}
 	\label{fig:FPN}
 \end{figure*}
 
@@ -59,12 +64,12 @@ M_t, K_t = R(M_{t-1}\otimes f_k, K_{t-1}\otimes f_k)
 
 在使用兴趣区域对齐层裁剪前，本文将所有检测到的边界框调整为正方形，以保持特征的长宽比。在区域对齐层，如果直接输入矩形框作为裁剪依据，那么在对齐尺寸后特征的长宽比将会被破坏，给模型带来性能上的损失。同时，一些不精确的检测结果也许无法涵盖物体的全部区域，这会将检测结果误差传播至接下来的任务中。因此，本文首先将检测框依据最长边的长度由矩形变换为正方形以适应网络期待的输入，同时，再在正方形检测框的外围填补20\%的大小以改善检测结果误差带来的损失。
 
-经过特征金字塔的融合特征图会根据检测到的边界框位置与尺寸被兴趣区域对齐层裁剪并缩放至同一尺寸下。由于这个兴趣区域对齐接收多个尺度的特征图，因此需要设计一种策略来选择与检测结果对应尺度的特征送入检测回归网络。如公式\eqref{def:PyramidRoIAlign}所示，本文设定初始的特征尺度$k_0$为3，而224则是在ImageNet上预训练好的尺寸大小。如果检测结果的面积小于224\times224，那么区域对齐层就会使用尺寸更大的特征裁剪并缩放；反之，如果检测结果的面积更大，对齐层则会选择尺寸更小，感受野相对更大的特征作为裁剪的对象。最终，被裁剪对齐的特征被分别被送入检测回归网络与融合优化网络中作为回归关键点与分割结果的依据。
-
+经过特征金字塔的融合特征图会根据检测到的边界框位置与尺寸被兴趣区域对齐层裁剪并缩放至同一尺寸下。由于这个兴趣区域对齐接收多个尺度的特征图，因此需要设计一种策略来选择与检测结果对应尺度的特征送入检测回归网络。其选择特征的原则可以被描述如下：
 \begin{equation}
 \label{def:PyramidRoIAlign}
 k =\lfloor k_0 + \log_{2}(\sqrt{wh} / 224) \rfloor
 \end{equation}
+如公式\eqref{def:PyramidRoIAlign}所示，本文设定初始的特征尺度$k_0$为3，而224则是在ImageNet上预训练好的尺寸大小。如果检测结果的面积小于224\times224，那么区域对齐层就会使用尺寸更大的特征裁剪并缩放；反之，如果检测结果的面积更大，对齐层则会选择尺寸更小，感受野相对更大的特征作为裁剪的对象。最终，被裁剪对齐的特征被分别被送入检测回归网络与融合优化网络中作为回归关键点与分割结果的依据。
 
 \subsection{检测回归网络}
 \label{subsec:detection}
@@ -76,24 +81,15 @@ k =\lfloor k_0 + \log_{2}(\sqrt{wh} / 224) \rfloor
 
 \subsection{优化模块结构设计}
 \label{subsec:architecture}
-优化模块的设计有两个目标，一个是将多任务的每个分支的信息从当前阶段传递到下一个阶段；另一个目标是网络应该有较好的融合方法让两个任务的特征。对于第一个目标，网络结构在每个分支都设计了传递的结构，以增强每个阶段在现有结果上优化的能力；其次，本文对于两个任务特征融合也对应设计了融合方法以达到交叉优化的目标。所以本文提出了涉及了多个拥有相同结构的优化模块多阶段地融合关键点信息与分割信息以增强姿态估计与实例分割的最终结果。
 
-\begin{figure*}[htbp]	
+优化模块结构设计如图\ref{fig:RefineNet}所示。优化模块的设计有两个目标，一个是将多任务的每个分支的信息从当前阶段传递到下一个阶段；另一个目标是网络应该有较好的融合方法让两个任务的特征。对于第一个目标，网络结构在每个分支都设计了传递的结构，以增强每个阶段在现有结果上优化的能力；其次，本文对于两个任务特征融合也对应设计了融合方法以达到交叉优化的目标。所以本文提出了涉及了多个拥有相同结构的优化模块多阶段地融合关键点信息与分割信息以增强姿态估计与实例分割的最终结果。
+
+\begin{figure*}[h]	
 	\centering
 	\includegraphics[width=0.8\textwidth]{RefineNet.pdf}
 	\caption{融合优化模块具体设计}
 	\label{fig:RefineNet}
 \end{figure*}
-
-
-%	TODO: more detailed content to discuss the net structure in refine section
-%	1. What the network looks like
-%	2. Why we propose the network like this? (need to be explain by experiments)
-%		a) training process (featured points)
-%			(i)		loss penalty calculation
-%		b) inference process 
-%			(i)		attention-like instance segmentation
-%Size of reception field is crucial to the refine section, as the key-point branch need them to avoiding the wrong decision in 
 
 每一个优化模块可以被抽象地定义为公式\eqref{def:refinenet}。首先，优化模块会把输入的特征分为两部分。第一份拷贝$f$会首先与来自阶段$t-1$的姿态结果$K_{t-1}$进行合并，并一同被送入一组共享的卷积层$C$中，得到姿态特征图$c$，如公式\eqref{def:sharedconv}\footnote{公式中的$\otimes$代表张量连接操作。}所示。第二份特征图拷贝$f$同样会与上一阶段的实例分割结果$M_{t-1}$进行合并，并被输入至注意力转换模块$A$中，得到注意力特征图$a$，如公式\eqref{def:attenconverter}\footnote{公式中的$\odot$代表张量内积操作。}所示。如公式\eqref{def:keypointhead}所描述，之后姿态特征图$c$会与经过$\sigma$门\footnote{$\sigma$门由一组神经层和一个$sigmoid$激活函数组成，会将网络输出限制在$[0,1]$的值域中}重新映射的注意力$a_s$相乘，经过姿态子网$H_k$的调整，最终输出关键点预测结果$K_t$。这样的设计让网络能够根据实例分割的结果生成注意力，让网络根据生成的注意力$a$生成更加鲜明的姿态估计结果。
 
@@ -125,23 +121,23 @@ M_t = H_m(F(c) \oplus \tanh(a))
 
 \begin{figure}[ht]
 	\centering
-	\begin{subfigure}{0.18\linewidth}
+	\begin{subfigure}[b]{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage1_atten.PNG}
 		\caption{阶段2}
 	\end{subfigure}
-	\begin{subfigure}{0.18\linewidth}
+	\begin{subfigure}[b]{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage2_atten.PNG}
 		\caption{阶段3}
 	\end{subfigure}
-	\begin{subfigure}{0.18\linewidth}
+	\begin{subfigure}[b]{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage3_atten.PNG}
 		\caption{阶段3}
 	\end{subfigure}
-	\begin{subfigure}{0.18\linewidth}
+	\begin{subfigure}[b]{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage4_atten.PNG}
 		\caption{阶段4}
 	\end{subfigure}
-	\begin{subfigure}{0.18\linewidth}
+	\begin{subfigure}[b]{0.18\linewidth}
 		\includegraphics[width=\linewidth]{6471_insid1_stage5_atten.PNG}
 		\caption{阶段5}
 	\end{subfigure}
@@ -149,40 +145,40 @@ M_t = H_m(F(c) \oplus \tanh(a))
 	\label{fig:multistageattention}
 \end{figure}
 
-在验证实验中，如图\ref{fig:attention_mask}所示，本文发现过多的优化模块可能并不会对两任务的融合起到很强的作用。因为在单人姿态估计网络中，如图\ref{fig:singleposemultistage}中所展示，更多堆叠卷积层带来的大感受野同样会让网络获得分辨人体的能力。这会让注意力模块失去足够的监督信息而无法学习到如何区分实例的方法。因此在本文中，选择在阶段4以后停止使用优化模块，取而代之使用普通卷积层构成的回归模块替换。为了将这一策略与上文提到的基础方法有所区分，本文将网络后面使用额外+号来区分彼此。
+如图\ref{fig:attention_mask}所示，虽然一定的优化模块能够优化注意力细化需要关注的区域。然而验证实验中，本文发现过多的优化模块可能并不会对两任务的融合起到很强的作用。因为在单人姿态估计网络中，如图\ref{fig:singleposemultistage}中所展示，更多堆叠卷积层带来的大感受野同样会让网络获得分辨人体的能力。这会让注意力模块失去足够的监督信息而无法学习到如何区分实例的方法。因此在本文中，选择在阶段4以后停止使用优化模块，取而代之使用普通卷积层构成的回归模块替换。为了将这一策略与上文提到的基础方法有所区分，本文将网络后面使用额外+号来区分彼此。
 
 \begin{figure}[h]
 \centering
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_image.PNG}
 	\caption{输入图像}
 \end{subfigure}
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_GT.PNG}
 	\caption{真值热图}
 \end{subfigure}
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage1.PNG}
 	\caption{阶段1}
 \end{subfigure}
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage2.PNG}
 	\caption{阶段2}
 \end{subfigure}
 
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage3.PNG}
 	\caption{阶段3}
 \end{subfigure}
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage4.PNG}
 	\caption{阶段4}
 \end{subfigure}
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage5.PNG}
 	\caption{阶段5}
 \end{subfigure}
-\begin{subfigure}{0.2\linewidth}
+\begin{subfigure}[b]{0.2\linewidth}
 	\includegraphics[width=\linewidth]{MPII_multi-stage-single_stage6.PNG}
 	\caption{阶段6}
 \end{subfigure}
@@ -193,56 +189,59 @@ M_t = H_m(F(c) \oplus \tanh(a))
 \subsection{弱监督与注意力机制}
 \label{subsec:weaksuper_attention}
 
-%	TODO: fit the <Attention is all you need> thread into this section
 本文特别将注意力点乘的部分设计到了1\times1卷积之前，而不是简单的在模块开始。考虑到网络的卷积操作会弱化注意力提供的信息，也就是卷积核越大卷积操作会越会囊括更多的邻近区域信息，1\times1卷积后的注意力点乘会直接作用于最终结果的最后位置上。这样能够保证网络输出足够稳定，并且在监督过程中也不会出现其他影响在弱监督条件下约束的注意力生成的因素。
 
-本文在选取注意力的表现形式时，使用了软注意力作为交叉优化中媒介。实际上，实例分割的结果可以被当做一种注意力。因为使用分割结果在网络后处理阶段直接进行点乘处理，也就是在关键点热图使用分割结果做遮罩操作，在简单的融合实例分割信息的多人姿态估计策略中是很常见的。这种处理就相当于强化了对应空间位置的热图响应，也就是与注意力的机理是相似的。虽然实例分割也是网络自生成的结果，但由于其并不能完全满足多人姿态估计的要求，那么单独设计的使用实例分割信息监督影响的注意力就显得非常重要了。另外，实例分割结果是二值化图像，相当于一种硬注意力。与软注意力相比，硬注意会直接消除特征图对应位置的特征响应，损失了很多网络预测关键点位置所依赖的特征。并且这样使用硬注意力的系统会受限制于硬注意力本身，一旦生成的硬注意力不准确，就会在像姿态估计这种对于精确度要求很高的任务上失败。在F. Wang的工作\cite{wang2017residual}中也使用了软注意力来完成图像分类这一精度要求较高的任务，他们使用单独的分支生成注意力以增强对应区域的特征响应。这充分说明了软注意力在完成精确任务的目标上是必须的。
+本文在选取注意力的表现形式时，使用了软注意力作为交叉优化中媒介。实际上，实例分割的结果可以被当做一种注意力。因为使用分割结果在网络后处理阶段直接进行点乘处理，也就是在关键点热图使用分割结果做遮罩操作，在简单的融合实例分割信息的多人姿态估计策略中是很常见的。这种处理就相当于强化了对应空间位置的热图响应，也就是与注意力的机理是相似的。虽然实例分割也是网络自生成的结果，但由于其并不能完全满足多人姿态估计的要求，那么单独设计的使用实例分割信息监督影响的注意力就显得非常重要了。另外，实例分割结果是二值化图像，相当于一种硬注意力。与软注意力相比，硬注意会直接消除特征图对应位置的特征响应，损失了很多网络预测关键点位置所依赖的特征。并且这样使用硬注意力的系统会受限制于硬注意力本身，一旦生成的硬注意力不准确，就会在像姿态估计这种对于精确度要求很高的任务上失败。在Wang的工作\cite{wang2017residual}中也使用了软注意力来完成图像分类这一精度要求较高的任务，他们使用单独的分支生成注意力以增强对应区域的特征响应。这充分说明了软注意力在完成精确任务的目标上是必须的。
 
 本文提出的优化模块主要可以让两个任务互相交替优化：第一，姿态估计会想实例分割提供特征图，优化实例分割结果，如公式\eqref{def:fusion}。第二就是来自实例分割的特征会融合进入姿态子网对姿态估计结果进行优化，如公式\eqref{def:keypointhead}。其中第一点比较好实现，因为可以直接设计从姿态估计过程中抽取中间特征图来生成实例分割结果，就如公式\eqref{def:fusion}中的$F$的作用一样。
 
-\begin{figure*}
+\begin{figure}[h]
 	\centering
 	\begin{minipage}{\textwidth}
 		\centering
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage3_mask.png}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage1_atten.png}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage2_atten.png}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage3_atten.png}
 		\end{subfigure}
-		\rotatebox[origin=c]{90}{遮挡人}
 	\end{minipage}
 	
 	\vskip2pt
 	\begin{minipage}{\textwidth}
 		\centering
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid1_stage3_mask.png}
 			\caption{分割信息}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid1_stage1_atten.png}
 			\caption{阶段2注意力}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid1_stage2_atten.png}
 			\caption{阶段3注意力}
 		\end{subfigure}
-		\begin{subfigure}{0.23\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
 			\includegraphics[width=\linewidth]{885_insid1_stage3_atten.png}
 			\caption{阶段4注意力}
 		\end{subfigure}
-		\rotatebox[origin=c]{90}{被遮挡人}
+	\end{minipage}
+	\begin{minipage}{0.05\linewidth}
+		\rotatebox[origin=lt]{90}{\centering 遮挡人}
+		
+		\vskip2cm
+		\rotatebox[origin=lt]{90}{\centering 被遮挡人}
 	\end{minipage}
 	\caption{空间注意力能够提供比分割信息更多的划分区域}
 	\label{fig:attention_mask}
-\end{figure*}
+\end{figure}
 
 然而对于第二点而言，直接引入实例分割的监督信息没有办法完全满足多人姿态估计的要求。如图\ref{fig:attention_mask}所示，实例分割监督信息不会考虑遮挡情况下的躯干边界。也就是说，如果使用了实例分割结果的监督信息来监督网络自生成的注意力，就难以完成最初设计的帮助网络在有遮挡情况下区分不同人的躯干边界的目标了。同时，现有的数据难以重新标定以满足现有的需求，因为人通过估计得到被遮挡躯干的轮廓不光要消耗比简单分割标定更多的时间，还会因为这个任务过强的主观性导致标定数据的偏差很大，难以获得较为稳定的标定结果。这回导致网络无法在这样标定的数据下很好地收敛。因此，在这样的情况下，网络需要更加宽松的约束来监督注意力的生成。所以，这就是本文为何要引入弱监督的注意力来帮助网络关注特定区域的原因。
 
