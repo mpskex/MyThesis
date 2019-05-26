@@ -197,46 +197,52 @@ M_t = H_m(F(c) \oplus \tanh(a))
 
 \begin{figure}[h]
 	\centering
-	\begin{minipage}{\textwidth}
+	\begin{subfigure}{0.23\textwidth}
 		\centering
-		\begin{subfigure}[b]{0.23\linewidth}
+		\begin{subfigure}[b]{\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage3_mask.png}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage3_mask.png}
+		\end{subfigure}
+		\caption{分割信息}
+	\end{subfigure}
+	\begin{subfigure}{0.23\textwidth}
+		\begin{subfigure}[b]{\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage1_atten.png}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage1_atten.png}
+		\end{subfigure}
+		\caption{阶段2注意力}
+	\end{subfigure}
+	\begin{subfigure}{0.23\textwidth}
+		\begin{subfigure}[b]{\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage2_atten.png}
 		\end{subfigure}
-		\begin{subfigure}[b]{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{885_insid1_stage2_atten.png}
+		\end{subfigure}
+		\caption{阶段3注意力}
+	\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}
+		\centering
+		\begin{subfigure}[b]{\linewidth}
 			\includegraphics[width=\linewidth]{885_insid0_stage3_atten.png}
 		\end{subfigure}
-	\end{minipage}
-	
-	\vskip2pt
-	\begin{minipage}{\textwidth}
-		\centering
-		\begin{subfigure}[b]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage3_mask.png}
-			\caption{分割信息}
-		\end{subfigure}
-		\begin{subfigure}[b]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage1_atten.png}
-			\caption{阶段2注意力}
-		\end{subfigure}
-		\begin{subfigure}[b]{0.23\linewidth}
-			\includegraphics[width=\linewidth]{885_insid1_stage2_atten.png}
-			\caption{阶段3注意力}
-		\end{subfigure}
-		\begin{subfigure}[b]{0.23\linewidth}
+		\vskip2pt
+		\begin{subfigure}[b]{\linewidth}
 			\includegraphics[width=\linewidth]{885_insid1_stage3_atten.png}
-			\caption{阶段4注意力}
 		\end{subfigure}
-	\end{minipage}
+		\caption{阶段4注意力}
+	\end{subfigure}
 	\begin{minipage}{0.05\linewidth}
 		\rotatebox[origin=lt]{90}{\centering 遮挡人}
 		
-		\vskip2cm
+		\vskip1cm
 		\rotatebox[origin=lt]{90}{\centering 被遮挡人}
 	\end{minipage}
 	\caption{空间注意力能够提供比分割信息更多的划分区域}
