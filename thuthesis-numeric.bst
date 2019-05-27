@@ -20,6 +20,9 @@
 %% and version 1.3c or later is part of all distributions of LaTeX
 %% version 2005/12/01 or later.
 %% -------------------------------------------------------------------
+%%
+%% BJUT TODO: Temporal change due to multiple [s1: sn]
+%%
 INTEGERS {
   uppercase.name
   max.num.authors
@@ -148,21 +151,21 @@ FUNCTION {bbl.slash} { "//\allowbreak " }
 FUNCTION {bbl.sine.loco}
 { entry.lang lang.zh =
     { "[出版地不详]" }
-    { "[S.l.]" }
+    { "" }
   if$
 }
 
 FUNCTION {bbl.sine.nomine}
 { entry.lang lang.zh =
     { "[出版者不详]" }
-    { "[s.n.]" }
+    { "" }
   if$
 }
 
 FUNCTION {bbl.sine.loco.sine.nomine}
 { entry.lang lang.zh =
     { "[出版地不详: 出版者不详]" }
-    { "[S.l.: s.n.]" }
+    { "" }
   if$
 }
 

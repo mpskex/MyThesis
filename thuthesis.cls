@@ -363,6 +363,13 @@
   \fancyfoot[C]{\wuhao\thepage}
   \renewcommand{\headrulewidth}{0.4pt}
   \renewcommand{\footrulewidth}{0pt}}
+\fancypagestyle{thu@translatehdr}{%
+  \fancyhead{}
+  \fancyhead[C]{\lishu \sanhao 北京工业大学毕业设计（译文）}
+  \fancyfoot{}
+  \fancyfoot[C]{\wuhao\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0pt}}
 \fancypagestyle{thu@headings}{%
   \fancyhead{}
   \fancyhead[C]{\wuhao\normalfont\leftmark}
@@ -1208,13 +1215,18 @@
 }{}{}
 \let\thu@appendix\appendix
 \renewenvironment{appendix}{%
+  \cleardoublepage
+  \thispagestyle{thu@translatehdr}
+  \pagestyle{thu@translatehdr}
   \let\title\thu@appendix@title
-  \thu@appendix}{%
+  \thu@appendix
+  \setcounter{page}{1}}{%
   \let\title\@gobble}
 \let\title\@gobble
 \newcommand{\thu@appendix@title}[1]{%
   \begin{center}
-    \xiaosi[1.667] #1
+    \heiti
+    \sanhao[1.667] #1
   \end{center}}
 \newlist{translationbib}{enumerate}{1}
 \setlist[translationbib]{label=[\arabic*],align=left,nosep,itemsep=6bp,

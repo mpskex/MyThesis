@@ -1707,6 +1707,7 @@
 % \changes{v2.5}{2006/05/20}{增加 empty 页面样式。}
 % \changes{v4.7}{2012/05/29}{本科页码用小五号字。}
 % \changes{v5.0.0}{2015/12/20}{利用 \pkg{fancyhdr} 设置页眉页脚。}
+% \changes{v5.5.1.BJUT.05}{2019/05/27}{增加附录页眉}
 % 定义三种页眉页脚格式：
 % \begin{itemize}
 % \item \texttt{thu@empty}：页眉页脚都没有
@@ -1722,6 +1723,13 @@
 \fancypagestyle{thu@plain}{%
   \fancyhead{}
   \fancyhead[C]{\lishu \sanhao 北京工业大学毕业设计（论文）}
+  \fancyfoot{}
+  \fancyfoot[C]{\wuhao\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0pt}}
+\fancypagestyle{thu@translatehdr}{%
+  \fancyhead{}
+  \fancyhead[C]{\lishu \sanhao 北京工业大学毕业设计（译文）}
   \fancyfoot{}
   \fancyfoot[C]{\wuhao\thepage}
   \renewcommand{\headrulewidth}{0.4pt}
@@ -2524,8 +2532,6 @@
 本人完全了解北京工业大学有关保留、使用学位论文的规定，即：学校有权保留送交论文的
 复印件，允许论文被查阅和借阅；学校可以公布论文的全部或部分内容，可以采用影印、缩
 印或其他复制手段保存论文。
-（保密的论文在解密后应遵守此规定）
-
 \else
 本人完全了解北京工业大学有关保留、使用学位论文的规定，即：
 
@@ -2539,7 +2545,7 @@
 本人保证遵守上述规定。
 \fi}
 \newcommand{\thu@authorizationaddon}{%
-  \ifthu@bachelor(涉密的学位论文在解密后应遵守此规定)\else （保密的论文在解密后应遵守此规定）\fi}
+  \ifthu@bachelor（保密的论文在解密后应遵守此规定）\else （保密的论文在解密后应遵守此规定）\fi}
 \newcommand{\thu@authorsig}{\ifthu@bachelor 签\hskip1em名：\else 作者签名：\fi}
 \newcommand{\thu@teachersig}{导师签名：}
 \newcommand{\thu@frontdate}{%
@@ -3315,24 +3321,30 @@
 % \label{sec:appendix}
 % \begin{environment}{appendix}
 % 主要给本科做外文翻译用。
+% \changes{v5.5.1.BJUT.05}{2019/05/27}{修改附录以重新编号页码}
 %    \begin{macrocode}
 \let\thu@appendix\appendix
 \renewenvironment{appendix}{%
+  \clearpage
+  \pagestyle{thu@translatehdr}
   \let\title\thu@appendix@title
-  \thu@appendix}{%
+  \thu@appendix
+  \setcounter{page}{1}}{%
   \let\title\@gobble}
 %    \end{macrocode}
 % \end{environment}
 %
 % \begin{macro}{\title}
 % \changes{v5.2.0}{2016/01/11}{增加 \cs{title} 排版翻译标题。}
+% \changes{v5.5.1.BJUT.05}{2019/05/27}{修正翻译标题格式}
 % 本科外文翻译文章的标题，用法：\cs{title}\marg{资料标题}。这个命令只能在附录环
 % 境下使用。
 %    \begin{macrocode}
 \let\title\@gobble
 \newcommand{\thu@appendix@title}[1]{%
   \begin{center}
-    \xiaosi[1.667] #1
+    \heiti
+    \sanhao[1.667] #1
   \end{center}}
 %    \end{macrocode}
 % \end{macro}

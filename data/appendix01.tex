@@ -1,14 +1,7 @@
-\chapter*{外文文献翻译}
-{\centering
-\begin{minipage}{\linewidth}
-	\centering
-	\xiaosan
-	\bfseries
-	《多人区域姿态估计网络》\\ 
-	RMPE: Regional multi-person pose estimation
-\end{minipage}
+\title{《多人区域姿态估计网络》\\ 
+	RMPE: Regional multi-person pose estimation\\
+	{\wuhao Hao-Shu Fang, Shuqin Xie, Yu-Wing Tai, Cewu Lu}\\
 }
-\label{cha:engtrans}
 \section*{摘要}
 在开放场景多人姿态估计是一个非常有挑战的任务。虽然现有的人体检测器已经展现出较好的效果，但是在一些困难场景下检测和识别误差中仍然无法避免。这些误差会导致在多人姿态检测系统系统在单人姿态估计网络阶段产生失误，尤其是一些非常依赖人体检测结果的方法。在本文中，我们提出了一种全新的区域多人姿态估计架构，用于改善人体检测器中可能出现的误差。我们的框架由三部分组成：对称空间变换网络，参数化姿态极大值抑制，以及姿态引导的目标框引导生成器。我们的方法可以应对不准确的检测框，并产生冗余的检测结果，让本方法在MPII数据集上达到76.7mAP的成绩。本文中的模型以及源码已经向公众开放。
 
@@ -27,7 +20,7 @@
 由人体检测器提供的人体检测框并不是很适合单人姿态估计网络。这是因为单人姿态网络在训练时是仅使用单人图像的因此它们对于一些定位误差十分敏感。一些对检测框的细微调整或者是裁剪可以有效地改善单人姿态估计网络的性能。本文中的对称空间变化网络以及并行单人姿态估计网络的提出旨在提高单人姿态估计网络在不完美人体检测框下的性能。对称空间变换网络与并行的单人姿态估计网络结构如图4所示。
 
 \textbf{空间变换网络与逆空间变换网络} 空间变换网络在自动选择兴趣区域时体现出了极好的性能。在本文中，我们使用空间变换网络来提取高质量的显著人体检测框。从数学上来讲，空间变换网络可以被描述为：
-\begin{equation}
+\begin{equation*}
 \label{rmpe:1}
 \begin{pmatrix}
 x_i^s \\
@@ -42,9 +35,9 @@ x_i^t \\
 y_i^t \\
 1
 \end{pmatrix}
-\end{equation}
+\end{equation*}
 在公式\eqref{rmpe:1}中，$\theta_1$，$\theta_2$和$\theta_3$是一个在$\mathbb{R}^2$中的向量。$\{x_i^s, y_i^s\}$和$\{x_i^t,y_i^t\}$分别是空间变换前后的坐标。在单人姿态网络后，姿态结果会被映射到原始的图像中。很自然地，在这之后需要一个逆空间变换网络来将估计到的人体姿态重新映射到原始图像的坐标系中。这里逆空间变换网络计算$\gamma$来对坐标进行逆变换。
-\begin{equation}
+\begin{equation*}
 \label{rmpe:2}
 \begin{pmatrix}
 x_i^t \\
@@ -59,9 +52,9 @@ x_i^ts\\
 y_i^s\\
 1
 \end{pmatrix}
-\end{equation}
+\end{equation*}
 由于逆空间变换网络是一个空间变换网络的逆过程，因此我们可以得到：
-\begin{equation}
+\begin{equation*}
 \label{rmpe:3}
 \begin{bmatrix}
 \gamma_1 & \gamma_2
@@ -70,29 +63,29 @@ y_i^s\\
 \begin{bmatrix}
 \theta_1 & \theta_2
 \end{bmatrix}^{-1}
-\end{equation}
+\end{equation*}
 
-\begin{equation}
+\begin{equation*}
 \label{rmpe:4}
 \gamma_3 = -1 \times 
 \begin{bmatrix}
 \gamma_1 & \gamma_2
 \end{bmatrix}
 \theta_3
-\end{equation}
+\end{equation*}
 
 为了能够让梯度通过逆空间变换网络回传，$\frac{\partial J(W, b)}{\partial \theta}$对$\theta_1$与$\theta_2$的偏导可以被求解为：
-\begin{equation}
+\begin{equation*}
 \label{rmpe:5}
 \frac{\partial J(W, b)}{\partial \begin{bmatrix} \theta_1 & \theta_2\end{bmatrix}} = 
 \frac{\partial J(W, b)}{\partial \begin{bmatrix} \gamma_1 & \gamma_2\end{bmatrix}} \times \frac{\partial \begin{bmatrix} \theta_1 & \theta_2\end{bmatrix}}{\partial \begin{bmatrix} \gamma_1 & \gamma_2\end{bmatrix}} + \frac{\partial J(W, b)}{\partial \gamma_3} \times \frac{\partial \gamma_3}{\partial \begin{bmatrix} \gamma_1 & \gamma_2\end{bmatrix}} \times  \frac{\partial \begin{bmatrix} \theta_1 & \theta_2\end{bmatrix}}{\partial \begin{bmatrix} \gamma_1 & \gamma_2\end{bmatrix}}
-\end{equation}
+\end{equation*}
 
 同样地，$\frac{\partial J(W, b)}{\partial \theta}$对$\theta_3$的偏导可以被求解为：
-\begin{equation}
+\begin{equation*}
 \label{rmpe:6}
 \frac{\partial J(W,b)}{\partial \theta_3} = \frac{\partial J(W,b)}{\partial \gamma_3} \times \frac{\partial \gamma_3}{\partial \theta_3}
-\end{equation}
+\end{equation*}
 $\frac{\partial \begin{bmatrix} \theta_1 & \theta_2\end{bmatrix}}{\partial \begin{bmatrix} \gamma_1 & \gamma_2\end{bmatrix}}$与$\frac{\partial \gamma_3}{\partial \theta_3}$可以被分别求解为公式\eqref{rmpe:3}与公式\eqref{rmpe:4}。
 
 在提取完高质量的人体检测框之后，我们可以整合现有的单人姿态估计网络来提取高精度的多人人体姿态。在我们的训练过程中，对称空间变换网络在后调整步骤中与单人姿态网络联合训练。

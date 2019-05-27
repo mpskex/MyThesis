@@ -1,12 +1,13 @@
 \chapter{实验验证与分析}
 \label{cha:exp}
-在实验中，本文在COCO2017验证数据集上达成了46.7mAP的姿态检测结果，证明了本文中的优化模块的确优化了多人姿态估计网络的性能。同时，为了证明方法的有效性，本文完成了一些实验来证明本文提出的弱监督下的注意力以及其对应的网络结构能够较好地在解决多人遮挡的问题的同时，改善关键点与实例分割的结果。
+在实验中，本文在COCO2017\cite{lin2014microsoft}验证数据集上达成了46.7mAP的姿态检测结果，证明了本文中的优化模块确实改善了多人姿态估计网络的性能。同时，为了证明方法的有效性，本文完成了消融实验来证明本文提出的弱监督下的注意力以及其对应的网络结构能够较好地解决多人遮挡的问题，同时改善关键点与实例分割的结果。
 \section{数据集与评价指标}
 \label{sec:dataset}
-COCO2017数据集包含了15万个人体以及将近170万个标注的关键点信息。本文在使用该数据集时，将数据集中的标注数据进行了清洗。本文将小于3个关键点的数据过滤，从而在训练数据集中选出了满足要求的二十六万个训练数据以及用于验证的一万一千个验证数据。每个数据由关键点信息以及目标框组成。本文中为了整体训练整个网络，同时使用了数据集中的关键点以及目标框的信息。
+COCO2017数据集包含了15万个人体以及将近170万个标注的关键点信息。本文在使用该数据集时，将数据集中的标注数据进行了清洗。本文将小于3个关键点的数据过滤，从而在训练数据集中选出了满足要求的26万个训练数据以及用于验证的1.1万个验证数据。每个数据由关键点信息以及目标框组成。本文中为了整体训练整个网络，同时使用了数据集中的关键点以及目标框的信息。
 
-为了验证在\ref{sec:refine}节中提出的网络结构，本文设计了使用mAP作为评价指标的消融实验与性能对比实验。在实验中本文使用了COCO2017验证数据集\cite{lin2014microsoft}作为本文验证的数据集。平均准确度(mAP，mean Average Precision)\cite{zhu2004recall}指标都是旨在统计一定容忍度下的关键点命中情况。平均准确度通过计算交并比(IoU, Intersection over Union)来求得不同物体关键点相似度(OKS，Object Key-point Similarity)\footnote{物体关键点相似度从0.5取值至0.95，间隔为0.01。}下的准确率，并对这些准确率进行积分得到最终平均准确率。
+为了验证在\ref{sec:refine}节中提出的网络结构，本文设计了使用mAP作为评价指标的消融实验与性能对比实验。在实验中本文使用了COCO2017验证数据集\cite{lin2014microsoft}作为本文验证的数据集。平均准确度(mAP，mean Average Precision)\cite{zhu2004recall}指标都是旨在统计一定容忍度下的关键点命中情况。平均准确度通过计算交并比(IoU, Intersection over Union)来求得不同物体关键点相似度(OKS，Object Key-point Similarity)\footnote{物体关键点相似度从0.5取值至0.95，间隔为0.01。}下的准确率，并对这些准确率进行积分得到最终平均准确率\cite{ruggero2017benchmarking}。
 
+% TODO:	对比度调整
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\linewidth]{OKS.png}
@@ -15,41 +16,6 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 \end{figure}
 
 物体关键点在计算交并比的时候，需要设置关键点的容许度半径，如图\ref{fig:oksfigure}中所示。不同的关键点拥有不同的容许度半径。比如眼睛的容许度半径一定比手腕的容许度范围要小。在图\ref{fig:oksfigure}中，手腕与眼睛的预测关键点与真值的距离相当，然而给出的命中判定却不相同。因为人类对眼睛关键点的标注方差更小，对手腕关键点的标注方差更大。COCO数据集根据人类对于不同关键点标注的方差大小设置容许度半径来判别关键点命中是合理的。这比一些通过标准化距离阈值来判别命中的方法，比如关键点命中概率曲线\cite{andriluka20142d}(PCK，Probability of Correct Key-point)更加科学。
-
-\section{性能对比}
-\label{sec:perfcompare}
-本节中文章主要通过对比网络在mAP指标上的表现，来对比网络与现有方法的性能。在对比的同时还会给出结果分析，尝试从实验结果验证网络结构设计的优势。本文选取了自顶向下结构的堆叠沙漏模型作为本文的对比方法。
-% TODO: 比较表格
-\begin{table*}[ht]
-	\centering
-	\caption{COCO公开测试集的模型性能对比}
-	\label{tab:mAPCOCObenchmark}
-	\begin{minipage}[t]{0.8\linewidth}
-		\begin{tabular}{p{0.25\linewidth}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}}
-			\hline
-			方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$}
-			& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
-			
-			& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}&
-			\multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{
-				(\%)}\\
-			\hline
-			Top-down SHN\cite{newell2016stacked} & 46.0 & 74.6 & \textbf{48.4} & 38.8  & \textbf{55.6} \\
-			本文复现 & 41.2 & 71.3 & 45.9 & 34.2 & 47.4 \\
-			本文方法$^1$ & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
-			本文方法+ $^2$ & \textbf{46.7} & \textbf{83.4} & 46.6 & \textbf{45.1} & 53.2 \\
-			\hline
-		\end{tabular}\\[2pt]
-		\noindent\rule{0.25\linewidth}{1pt} \\
-		\footnotesize
-		1: 使用直接连接的4个堆叠的优化模块，在本文提出的整体训练策略下收敛的模型。\\
-		2: 为了增加网络感受野而使用后置的类似基准方法中出现的优化模块，在本文提出的整体训练策略下收敛的模型。
-	\end{minipage}
-\end{table*}
-
-首先需要关注复现的基准方法相对于本文提出的方法的性能提升。很明显这两种使用优化模块的策略均比基准方法更优或表现相当。对于本文方法$^1$，除在$AP_{OKS=0.75}$的指标下比复现方法略低以外，该策略下的其他指标数值均优于复现的基准方法。而之后在此基础上额外增加后置类似基准方法中出现的优化模块的本文方法+$^2$同样在原有的基础上提高了$0.8mAP$，但是在$AP_{OKS=0.75}$的指标上虽然超过了复现方法，但仍低于用于对比的其他方法。对比方法虽然在$AP_{OKS=0.75}$与$AP_L$指标上略高于本文方法，但是本文在$AP_{OKS=0.5}$指标上远远高于对比方法。整体而言，本文方法比现有的自顶向下的堆叠沙漏网络在性能上高出$0.7mAP$。
-
-相对于在表\ref{tab:mAPCOCObenchmark}中，可以明显看到本文在宽松条件下（OKS=0.5）的关键点准确度明显优于本文复现的自顶向下框架和SHN网络的结果。这一结果要归功于网络中使用弱监督学习方法监督的注意力机制，其生成的关注区域帮助网络生成更加紧凑的关键点结果。同时在小目标检测\footnote{在COCO数据集中，小目标通常指边界框面积小于$64^2$的目标。}中明显优于传统的自顶向下的方法。大目标中出现的性能损失主要是来源于直接的特征剪裁方法。在其他自顶向下方法中，普遍采取的特征提取方法是将原图像根据检测框裁剪，再送入姿态估计网络。本结构中使用的剪裁策略是直接使用特征进行剪裁。这会导致较大尺度的特征信息损失更多，因此可能会造成在更大尺寸图像上的姿态估计结果精度下降的问题。本文方法在高精度要求的指标下略微低于对比方法。这可能是由于损失函数相互竞争而造成的后果。本文通过在损失函数中设定合适的$\alpha$值来确保竞争尽可能小。同时，整体层面上，本文方法仍然要优于基线方法与堆叠沙漏网络。
 
 \section{消融实验与分析}
 \label{sec:ablation}
@@ -65,7 +31,7 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 	\item \textbf{多任务融合+}：在多任务融合网络结构的基础上，加入后置的类似单任务无融合中出现的优化模块来扩大网络感受野的网络结构策略。
 \end{itemize}
 
-\subsection{消融性能实验}
+\subsection{消融对比实验}
 \label{subsec:selfeval}
 
 本文根据\ref{subsec:selfstrategy}节中提到的消融策略完成了在COCO数据集上的消融性能实验。实验结果如表\ref{tab:mAPCOCOselfbenchmark}所示。
@@ -102,39 +68,39 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 \label{sec:weaksuperatten}
 本文将网络中输出的空间注意力可视化，并于原图混合得到了最终可视化的结果。由于空间注意力是一个单通道的热图，因此本文使用了Plasma方式映射颜色空间，得到了在图\ref{fig:attenvis}右侧的可视化结果。如图\ref{fig:attenvis}中所示，注意力能够较为明确地给出遮挡人轮廓边界。同时对于被遮挡人不可见身体部分的对应区域，空间注意力也能给出一定的响应。
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}{0.3\linewidth}
-		\includegraphics[width=\linewidth]{60507.png}
+		\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507.png}
 		\caption{原始图像}
 	\end{subfigure}
 	\begin{subfigure}{0.3\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid1_stage1_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage1_atten.png}
 		\end{subfigure}
 		\vskip2pt
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid1_stage2_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage2_atten.png}
 		\end{subfigure}
 		\vskip2pt
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid1_stage3_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage3_atten.png}
 		\end{subfigure}
 		\caption{遮挡人}
 	\end{subfigure}
 	\begin{subfigure}{0.3\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid12_stage1_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid12_stage1_atten.png}
 		\end{subfigure}
 		\vskip2pt
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid12_stage2_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid12_stage2_atten.png}
 		\end{subfigure}
 		\vskip2pt
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid12_stage3_atten.png}
 		\end{subfigure}
 		\caption{被遮挡人}
 	\end{subfigure}
@@ -151,30 +117,32 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 	\label{fig:attenvis}
 \end{figure}
 
+从图\ref{fig:attenvis}中我们可以看出，多阶段的设计对注意力生成的轮廓有较为明显地改善。在第四阶段，网络对被遮挡人生成的注意力明显排除了遮挡人的部分区域，从而让网络给出更加精确的姿态估计与实例分割结果。
+
 在全局损失函数(公式\eqref{detection_loss})中不同的$\alpha$会影响注意力的生成。根据\ref{subsec:gradient}节中的推导，更低的$\alpha$会引导注意力在训练过程中缺少来自实例分割的引导。这会让注意力关注的区域更加泛化，难以引导关键点分支关注正确的区域。本文使用不同的$\alpha$取值训练网络，同来对比生成的注意力区域的精细程度。由于网络生成的注意力对关键点任务十分重要，因此注意力生成的质量可以间接表明模型的性能。
 
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}{0.3\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid1_stage3_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage3_atten.png}
 		\end{subfigure}
 		\vskip2pt
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid12_stage3_atten.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid12_stage3_atten.png}
 		\end{subfigure}
 		\caption{$\alpha=0.1$}
 	\end{subfigure}
 	\begin{subfigure}{0.3\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid1_stage1_atten_alpha.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage1_atten_alpha.png}
 		\end{subfigure}
 		\vskip2pt
 		\begin{subfigure}{\linewidth}
-			\includegraphics[width=\linewidth]{60507_insid12_stage1_atten_alpha.png}
+			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid12_stage1_atten_alpha.png}
 		\end{subfigure}
 		\caption{$\alpha=0.01$}
 	\end{subfigure}
@@ -184,15 +152,17 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 		\vskip2cm
 		\rotatebox[origin=c]{90}{\centering 被遮挡人}
 	\end{minipage}
-	\caption{在$\alpha$取值下训练得到的遮挡情况下的空间注意力可视化结果}
+	\caption{在不同$\alpha$取值下训练得到的遮挡情况下的空间注意力可视化结果}
 	\label{fig:attenalpha}
 \end{figure}
+
+在全局损失函数(公式\eqref{detection_loss})中不同的$\alpha$会影响注意力的生成。根据\ref{subsec:gradient}节中的推导，更低的$\alpha$会引导注意力在训练过程中缺少来自实例分割的引导。这会让注意力关注的区域更加泛化，难以引导关键点分支关注正确的区域。本文使用不同的$\alpha$取值训练网络，同来对比生成的注意力区域的精细程度。由于网络生成的注意力对关键点任务十分重要，因此注意力生成的质量可以间接表明模型的性能。
 
 正如上文所推测，更小的$\alpha$取值非但没有让注意力更多地关注关键点区域，反而让注意力生成更加偏离实例分割的结果。这样与本文希望注意力能够达到的目标相悖，因而在实验中选取了$\alpha=0.1$作为损失函数中平衡实例分割与关键点影响的因子来训练网络。
 
 同时，通过实验发现(如图\ref{fig:failcase})，在注意力无法区分单个人体区域的时候，会比较明显地影响关键点定位结果。对于注意力而言，在过多遮挡的场景中辨析单个人体是一个较为困难的任务。由于缺乏足够的关键点与实例分割检测结果，自生成的空间注意力会无法将两人分开。这也是现有方法中普遍存在的问题。但在轻度遮挡的情况下，本文方法仍拥有区分出不同人体区域的能力。
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.22\textwidth}
 		\centering
@@ -248,6 +218,41 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 	\label{fig:failcase}
 \end{figure}
 
+
+\section{性能对比与分析}
+\label{sec:perfcompare}
+本节中文章主要通过对比网络在mAP指标上的表现，来对比网络与现有方法的性能。在对比的同时还会给出结果分析，尝试从实验结果验证网络结构设计的优势。本文选取了自顶向下结构的堆叠沙漏模型作为本文的对比方法。
+% TODO: 比较表格
+\begin{table*}[ht]
+	\centering
+	\caption{COCO公开测试集的模型性能对比}
+	\label{tab:mAPCOCObenchmark}
+	\begin{minipage}[t]{0.8\linewidth}
+		\begin{tabular}{p{0.25\linewidth}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}p{0.1\linewidth}<{\centering}}
+			\hline
+			方法 & \multicolumn{1}{c}{$mAP$} & \multicolumn{1}{c}{$AP_{OKS=0.5}$} & \multicolumn{1}{c}{$AP_{OKS=0.75}$}
+			& \multicolumn{1}{c}{$AP_M$} & \multicolumn{1}{c}{$AP_L$} \\
+			
+			& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}&
+			\multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{(\%)}& \multicolumn{1}{c}{
+				(\%)}\\
+			\hline
+			Top-down SHN\cite{newell2016stacked} & 46.0 & 74.6 & \textbf{48.4} & 38.8  & \textbf{55.6} \\
+			本文复现 & 41.2 & 71.3 & 45.9 & 34.2 & 47.4 \\
+			本文方法$^1$ & 45.9 & 82.1 & 45.3 & 43.0 & 51.6 \\
+			本文方法+ $^2$ & \textbf{46.7} & \textbf{83.4} & 46.6 & \textbf{45.1} & 53.2 \\
+			\hline
+		\end{tabular}\\[2pt]
+		\noindent\rule{0.25\linewidth}{1pt} \\
+		\footnotesize
+		1: 使用直接连接的4个堆叠的优化模块，在本文提出的整体训练策略下收敛的模型。\\
+		2: 为了增加网络感受野而使用后置的类似基准方法中出现的优化模块，在本文提出的整体训练策略下收敛的模型。
+	\end{minipage}
+\end{table*}
+
+首先需要关注复现的基准方法相对于本文提出的方法的性能提升。很明显这两种使用优化模块的策略均比基准方法更优或表现相当。对于本文方法，除在$AP_{OKS=0.75}$的指标下比复现方法略低以外，该策略下的其他指标数值均优于复现的基准方法。而之后在此基础上额外增加后置类似基准方法中出现的优化模块的本文方法+同样在原有的基础上提高了$0.8mAP$，但是在$AP_{OKS=0.75}$的指标上虽然超过了复现方法，但仍低于用于对比的其他方法。对比方法虽然在$AP_{OKS=0.75}$与$AP_L$指标上略高于本文方法，但是本文在$AP_{OKS=0.5}$指标上远远高于对比方法。整体而言，本文方法比现有的自顶向下的堆叠沙漏网络在性能上高出$0.7mAP$。
+
+相对于在表\ref{tab:mAPCOCObenchmark}中，可以明显看到本文在宽松条件下（OKS=0.5）的关键点准确度明显优于本文复现的自顶向下框架和SHN网络的结果。这一结果要归功于网络中使用弱监督学习方法监督的注意力机制，其生成的关注区域帮助网络生成更加紧凑的关键点结果。同时在小目标检测\footnote{在COCO数据集中，小目标通常指边界框面积小于$64^2$的目标。}中明显优于传统的自顶向下的方法。大目标中出现的性能损失主要是来源于直接的特征剪裁方法。在其他自顶向下方法中，普遍采取的特征提取方法是将原图像根据检测框裁剪，再送入姿态估计网络。本结构中使用的剪裁策略是直接使用特征进行剪裁。这会导致较大尺度的特征信息损失更多，因此可能会造成在更大尺寸图像上的姿态估计结果精度下降的问题。本文方法在高精度要求的指标下略微低于对比方法。这可能是由于损失函数相互竞争而造成的后果。本文通过在损失函数中设定合适的$\alpha$值来确保竞争尽可能小。同时，整体层面上，本文方法仍然要优于基线方法与堆叠沙漏网络。
 
 
 \section{视觉效果与分析}
@@ -358,15 +363,223 @@ COCO2017数据集包含了15万个人体以及将近170万个标注的关键点�
 			\caption{关键点检测}
 		\end{subfigure}
 	\end{minipage}
-	\caption{本文方法得到的可视化对比图}
-	\label{fig:megavis}
+	\caption{本文方法得到的视觉效果图 第一部分}
+	\label{fig:megavis_a}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{minipage}[t]{\linewidth}
+		\centering
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{80659.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{80659_insid-1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{80659_insid-1_mask.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{80659_insid-1_stage5_keypoint.png}
+		\end{subfigure}
+		
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{81988.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{81988_insid-1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{81988_insid-1_mask.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{81988_insid-1_stage5_keypoint.png}
+		\end{subfigure}
+		
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{90891.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{90891_insid-1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{90891_insid-1_mask.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{90891_insid-1_stage5_keypoint.png}
+		\end{subfigure}
+		
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{196141.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{196141_insid-1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{196141_insid-1_mask.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{196141_insid-1_stage5_keypoint.png}
+		\end{subfigure}
+		
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{216296.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{216296_insid-1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{216296_insid-1_mask.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{216296_insid-1_stage5_keypoint.png}
+		\end{subfigure}
+		
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{269316.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{269316_insid-1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{269316_insid-1_mask.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{269316_insid-1_stage5_keypoint.png}
+		\end{subfigure}
+		
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{323799.png}
+			\caption{输入图像}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{323799_insid-1_stage3_atten.png}
+			\caption{空间注意力}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{323799_insid-1_mask.png}
+			\caption{实例分割}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{323799_insid-1_stage5_keypoint.png}
+			\caption{关键点检测}
+		\end{subfigure}
+	\end{minipage}
+	\caption{本文方法得到的视觉效果图 第二部分}
+	\label{fig:megavis_b}
 \end{figure}
 
 本文通过大量的实验定量与定性实验证明了文章提出的网络结构以及训练方式能够有效地融合实例分割与姿态估计的信息，并通过弱监督学习训练的空间注意力改善这两个任务中的特征融合以及特征表达。本文提出的优化模块能够同时给出较好地关键点与分割的检测结果，并能够一定程度上地改善多人场景下的姿态遮挡问题。
 
-本文将部分可视化效果在图\ref{fig:megavis}中展示。可以看到本文方法在多人场景中达到了预期的效果。网络同时通过注意力机制学习关注了不同人体之间的关系，并且根据该线索预测出被遮挡区域的关键点。
+本文将部分可视化效果在图\ref{fig:megavis_a}与图\ref{fig:megavis_b}中展示。在这两幅途中，为了凸显实例分割的交叠，本文使用了加性融合的方法对实例分割结果进行可视化。同时为了让软注意力更加视觉友好，本文使用了最大值的方式合并不同实例的空间注意力可视化结果。本文方法在多人场景中达到了预期的效果。网络同时通过注意力机制学习关注了不同人体之间的关系，并且根据该线索预测出被遮挡区域的关键点。
 
+\begin{figure}[H]
+	\begin{minipage}{\linewidth}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000_insid9_stage3_keypoint_baseline.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000_insid9_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{1000_insid9_stage5_keypoint.png}
+		\end{subfigure}
+
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{6471.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{6471_insid9_stage3_keypoint_baseline.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{6471_insid9_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{6471_insid9_stage5_keypoint.png}
+		\end{subfigure}
+
+		\vskip5pt
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{54593.png}
+			\caption{输入图像}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{54593_insid3_stage3_keypoint_baseline.png}
+			\caption{基准方法}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{54593_insid3_stage3_atten.png}
+			\caption{本文注意力}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.23\linewidth}
+			\includegraphics[width=\linewidth]{54593_insid3_stage5_keypoint.png}
+			\caption{本文方法}
+		\end{subfigure}
+	\end{minipage}
+	\caption{本文方法与基准方法关键点任务对比视觉效果图}
+	\label{fig:comparison_keypoint}
+\end{figure}
+
+可以看到，本文提出的注意力能够明显地引导网络生成每个实例的位置。如图\ref{fig:comparison_keypoint}中所示，本文方法可以比基准方法更好地关注单个实例。在图\ref{fig:comparison_keypoint}的第一行可以看到，本文方法可以使关键点预测结果更加规整，将关键点预测区域限制于有限的人体区域内。基准方法中给出的多人姿态估计会受到其他实例的干扰，这使得关键点结果精度下降。通过使用空间注意力约束，能够限制网络对于特定区域生成姿态检测结果。此外，对于一些完全遮挡下的场景，本文方法也可以通过注意力生成关注区域引导姿态分支给出姿态估计，例如图\ref{fig:comparison_keypoint}中第三行图中所示。
+
+同时，使用注意力生成的实例分割也能在一些场合中给出有交叠的分割结果。如图\ref{fig:comparison_mask}所示，实例分割结果相比于基准方法更加能够考虑人体全局的特征。可以看到在第一行中被手臂遮挡的人体部位在基准方法给出的结果中是上下分离的，并且还出现了下半身无法给出争取分割的情况，而在本文方法中，不仅给出了大致结果，同时还连接了一部分断开的身体部分。在图\ref{fig:comparison_mask}中的第二行可以发现，本文方法给出的实例分割结果对于遮挡情况的应对能力相比基准方法得到了明显的改善。同时，由于本文将关键点信息特征引入实例分割任务中，因此本文方法中的实例分割结果也能够考虑关键点检测的结构帮助生成分割结果。
+
+\begin{figure}[H]
+	\begin{minipage}{\linewidth}
+		\centering
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{13729_insid-1_mask_poly_baseline.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{13729_insid-1_stage3_atten.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{13729_insid-1_mask_poly.png}
+		\end{subfigure}
+
+		\vskip5pt
+		\begin{subfigure}[b]{0.3\linewidth}
+			\adjustbox{width=\linewidth, trim={.15\width} {.1\height} {0.15\width} {.15\height},clip}%
+			{\includegraphics{60507_insid-1_mask_poly_baseline.png}}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\adjustbox{width=\linewidth, trim={.15\width} {.1\height} {0.15\width} {.15\height},clip}%
+			{\includegraphics{60507_insid-1_stage3_atten.png}}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\adjustbox{width=\linewidth, trim={.15\width} {.1\height} {0.15\width} {.15\height},clip}%
+			{\includegraphics{60507_insid-1_mask_poly.png}}
+		\end{subfigure}
+
+		\vskip5pt
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{323799_insid-1_mask_poly_baseline.png}
+			\caption{基准方法\cite{He2017Mask}}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{323799_insid-1_stage3_atten.png}
+			\caption{本文注意力}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{323799_insid-1_mask_poly.png}
+			\caption{本文方法}
+		\end{subfigure}
+	\end{minipage}
+	\caption{本文方法与基准方法实例分割对比视觉效果图}
+	\label{fig:comparison_mask}
+\end{figure}
 
 
 \section{本章小结}
-本节中，文章在COCO2017数据集上对比了现有方法与本文方法的性能指标，并通过设计多个对比消融实验分别证明了本文中提出的优化模块以及损失函数平衡策略的有效性。通过大量图例以及可视化结果，展示了网络模型同时给出分割结果和姿态估计结果的性能。
+本节中，文章在COCO2017数据集上对比了现有方法与本文方法的性能指标，并通过设计多个对比消融实验分别证明了本文中提出的优化模块以及损失函数平衡策略的有效性。通过大量图例以及可视化结果，展示了网络模型同时给出分割结果和姿态估计结果的性能，并证明了本文提出弱监督下空间注意力的有效性。
