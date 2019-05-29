@@ -1,6 +1,6 @@
 \chapter{基于深度学习的多人姿态估计相关技术}
 \label{cha:basicfacts}
-本章给出本文提出的多人姿态估计网络所涉及的相关技术。首先，介绍基于卷积神经网络的特征提取技术。之后，描述基于深度学习的目标检测技术以及人体姿态估计技术。这些技术分别是所提出的多人姿态网络中的特征提取与目标检测模块(在\ref{subsec:featextract}节)，以及检测回归网络(在\ref{subsec:detection}节)的技术基础。
+本章给出本文提出的多人姿态估计网络所涉及的相关技术。首先，介绍基于卷积神经网络的特征提取技术。之后，描述基于深度学习的目标检测技术以及人体姿态估计技术。这些技术分别是所提出的多人姿态网络中的特征提取与目标检测模块(见\ref{subsec:featextract}节)，以及检测回归网络(见\ref{subsec:detection}节)的技术基础。
 \section{基于卷积神经网络的特征提取技术}
 深度卷积神经网络已经被普遍应用于多种视觉任务中。本文使用在分类任务中预训练的深度神经网络作为特征提取器为顶层网络提供特征图。本节主要介绍与特征提取网络相关的基于卷积神经网络的特征提取技术。
 \subsection{深度卷积神经网络}
@@ -30,12 +30,12 @@ He等人在2015年提出残差网络\footnote{残差网络，Residual Network，
 
 \begin{figure*}[htbp]	
 	\centering
-	\begin{subfigure}[b]{0.35\textwidth}
+	\begin{subfigure}[b]{0.25\textwidth}
 		\includegraphics[width=\linewidth]{ResBlock_a.png}
 		\caption{普通残差模块}
 	\end{subfigure}
 	\hskip1.5cm
-	\begin{subfigure}[b]{0.35\textwidth}
+	\begin{subfigure}[b]{0.25\textwidth}
 		\includegraphics[width=\linewidth]{ResBlock_a.png}
 		\caption{瓶颈残差模块}
 	\end{subfigure}
@@ -44,7 +44,7 @@ He等人在2015年提出残差网络\footnote{残差网络，Residual Network，
 \end{figure*}
 \begin{figure*}[htbp]	
 	\centering
-	\includegraphics[width=0.8\textwidth]{ResNet.png}
+	\includegraphics[width=\textwidth]{ResNet.png}
 	\caption{残差网络结构\cite{He2015Deep}}
 	\label{fig:ResNet}
 \end{figure*}

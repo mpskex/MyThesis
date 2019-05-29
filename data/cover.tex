@@ -70,18 +70,18 @@
 
 % 定义中英文摘要和关键字
 \begin{cabstract}
-	多人姿态检测与跟踪是计算机视觉领域的重要研究课题，拥有广阔的研究前景。现有的多人姿态检测与跟踪算法存在诸多亟待解决的问题。自然图像中的人体存在大量遮挡，提取被遮挡人体的姿态信息一直是一项相当有挑战的任务。虽然自顶向下与自底向上两类多人姿态估计方法各自都在尝试解决遮挡下的姿态估计，但两类方法都各自面临误差传播和假阳性检测干扰的问题。
-  
-	本文提出一个基于实例分割的多人姿态检测与跟踪算法，设计了能够融合实例分割的多人姿态估计网络结构来解决姿态估计中的遮挡问题。该结构能够利用实例分割任务中提取的特征信息，同时优化姿态估计与分割结果。该结构在现有的姿态估计分支中引入注意力机制，帮助网络分辨不同人体区域，一定程度上解决了多人场景下的互遮挡问题。本文对网络中的注意力引入弱监督学习的方法，使用来自关键点与实例分割的两个损失函数间接约束注意力生成，以鼓励网络生成对被遮挡部分的关注。此外，空间注意力不仅引导网络分别对不同人体给出姿态估计，也提高了网络对不准确特征裁剪的适应性，弥补在传统两类方法中出现的误差传播与假阳性检测干扰的问题。
-  
-	本文的创新点在于提出一种融合实例分割的多人姿态估计网络结构，通过弱监督下的空间注意力改善多人姿态估计中的遮挡问题。本文提出的主要创新点如下：
+	多人姿态检测与跟踪是计算机视觉领域的重要研究课题，拥有广阔的应用前景。多人姿态检测与跟踪面临诸多挑战。其中核心挑战为单张固定视角图像中人与人之间的互遮挡问题。现有多人姿态估计方法难以较好解决该问题。
+
+	本文提出基于实例分割的多人姿态估计网络结构，能够在单张图像上准确提取多人人体姿态信息，从而实现序列图像多人姿态的检测与跟踪。所提出结构通过双任务的深度融合，能够借助实例分割线索区分不同人体区域，更好地解决多人姿态估计中的遮挡问题；同时，借助姿态检测结果反向优化实例分割。为了有效区分不同人体区域，所提出网络结构在其姿态估计分支中引入注意力机制。鉴于现有可用的实例分割真值缺失人体被遮挡部分的数据，难以用于人体区域注意力的生成，本文引入弱监督学习策略，使用来自关键点与实例分割的两个损失函数间接约束注意力产生过程，以鼓励被遮挡区域的生成。
+
+	本文主要创新之处在于提出了一种融合实例分割的多人姿态估计网络结构，相比现有方法，能够更加有效地克服多人场景中的互遮挡问题，并且能够优化实例分割结果。所提出网络结构的细节创新如下：
 	\begin{itemize}
-		\item 提出一种全新的融合人体实例分割的多人姿态联合优化网络结构
-	 	\item 引入注意力机制让网络自主学习完整人体区域；
-	 	\item 对于难以显式监督的注意力，使用弱监督方法隐式限制注意力的形成。
+		\item 提出一种基于人体实例分割的多人姿态估计网络结构，将实例分割和多人姿态估计任务融合在统一的深度学习框架下。
+	 	\item 引入注意力机制让网络自主学习完整人体区域的生成，柔性融合人体分割和多人姿态网络这两个完全不同任务的同时，克服人体互遮挡问题。
+	 	\item 提出使用弱监督方法隐式限制注意力形成，克服现有实例分割真值数据的缺失问题。
 	\end{itemize}
-  
-	通过上述结构，本文提出的方法能够在结合自顶向上与自底向上的多人姿态方法优势的基础上，改善两类方法的劣势，以完成对在遮挡情况下姿态估计的目标。通过实验证明，本文方法的速度与精度均已达到现有方法的性能指标，并且有所提升。并且本文方法可以在实时地完成多人场景下的姿态检测与跟踪。
+
+	本文在公开数据集上分别采用定量和定性实验验证了提出方法。实验证明：所提出方法在多人姿态估计和实例分割两方面，准确度均优于现有方法。同时，本文对所提出方法的核心模块进行了消融实验验证，证明了这些模块在提升多人姿态估计和实例分割准确度方面的有效性。
 
 \end{cabstract}
 
@@ -89,18 +89,18 @@
 % \ckeywords{计算机视觉, 人体姿态估计, 实例分割, 注意力机制, 弱监督学习}
 
 \begin{eabstract}
-Multi-person pose estimation is a practical and fundamental research topic in computer vision, which intends to localize all key-points of a person's body using image-based observation. It is a challenging task due to various body shapes and occlusion. Current methods to monocular multi-person pose estimation are categorized into top-down and bottom-up methods, while both of these two approaches have their own drawbacks. Top-down methods suffer from error propagation while bottom-up methods are easily interfered by false-positive detection of key-points.
+Multi-person pose estimation is a practical and fundamental research topic in computer vision with many potential applications. There are many challenges in multi-person pose estimation, one of which is to detect multi-person poses from monocular images of crowd scenes. Current methods fail in overcoming occlusion problem widely existing in the multi-person pose estimation task.
 
-In this work, we propose a novel architecture for multi-person pose estimation which introduces spatial attention, merging features from instance segmentation to improve key-point detection over instances. As the instance segmentation fails to supervise spatial attention due to its incompleteness on occluded body parts, we train attention using weakly supervised learning techniques, which would stimulate the network to include invisible body parts. Since we applied spatial attention to our method, the loose feature cropping strategy we adopted gives tolerance to inaccurate detected bounding boxes and limits the area of key-point detection, which tackles the problem in both top-down and bottom-up methods.
+In this work, we propose a novel deep learning architecture for multi-person pose estimation. It can locate multi-persons in single images, thereby achieving multi-person pose detection and tracking in image sequences. It integrates information from instance segmentation, by generating spatial attention to merge features from the two tasks. The proposed architecture effectively improves both pose estimation and instance segmentation. In order to distinguish difference instances, we utilize attention mechanism in the proposed network. Since it is incomplete in occluded body parts, the ground truth of instance segmentation cannot be used to supervise the training of spatial attention. We train the attention module with weakly supervised learning techniques. This stimulates the proposed network to successfully extract poses in occluded body parts.
 
-The highlight of our method is the refine modules that fuse information from instance segmentation, which is achieved by:
+The highlight of our method is the proposed deep learning architecture for multi-person pose estimation that fuses information from instance segmentation to overcome the occlusion problem. It can optimize instance segmentation simultaneously. The detail contributions include:
 \begin{itemize}
-	\item Designing a new multi-staged refine architecture that refines both key-point detection and segmentation.
-	\item Introducing attention mechanism which guide the network focus on specific area;
-	\item Using techniques in weakly supervised learning to train the spatial attention which consider all parts of a human body even if they are invisible in the image;
+	\item Designing a new deep architecture that improves both key-point detection and segmentation.
+	\item Introducing attention mechanism which guides the network to only focus on regions of specific instances;
+	\item Using technique of weakly supervised learning to train the spatial attention module which considers all parts of a human body even if they are invisible from the image;
 \end{itemize}
 
-With the help of mutual promotion from the proposed architecture, our method is able to generate accurate pose results without most drawbacks in top-down or bottom-up approaches. Experiments on benchmark shows that the our model achieves comparable results to other state-of-the-art methods in real-time level performances.
+We evaluate the proposed network in public data-sets qualitatively and quantitatively. Experiments demonstrate that the proposed network outperforms state-of-the-art methods in aspects of both multi-person pose estimation and instance segmentation. In the meanwhile, we perform ablation study for the key modules of the proposed network to validate their effectiveness in promoting multi-person pose estimation and instance segmentation. 
 \end{eabstract}
 
 % \ekeywords{Computer Vision, Human Pose Estimation, Instance Segmentation, Attention Mechanism, Weakly Supervised Learning}

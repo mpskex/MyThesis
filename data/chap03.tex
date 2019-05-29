@@ -9,7 +9,7 @@
 
 \begin{figure*}[htbp]	
 	\centering
-	\includegraphics[width=0.8\textwidth]{network.pdf}
+	\includegraphics[width=\textwidth]{network.pdf}
 	\caption{网络整体结构}
 	\label{fig:Overall}
 \end{figure*}
@@ -86,7 +86,7 @@ k =\lfloor k_0 + \log_{2}(\sqrt{wh} / 224) \rfloor
 
 \begin{figure*}[h]	
 	\centering
-	\includegraphics[width=0.8\textwidth]{RefineNet.pdf}
+	\includegraphics[width=\textwidth]{RefineNet.pdf}
 	\caption{融合优化网络具体设计}
 	\label{fig:RefineNet}
 \end{figure*}
@@ -267,14 +267,16 @@ M_t = H_m(F(c) \oplus \tanh(a))
 %		rather than enhance the result
 %			--> This will give more responses
 
-本文监督网络的损失函数可以被分为三部分：边界框损失函数、关键点分支损失函数与实例分割损失函数，如公式\eqref{detection_loss}。为了平衡每个分支的收敛速率，本文设计了$\beta$和$\alpha$分别控制目标检测与实例分割的损失函数权重。对于目标检测监督与实例分割监督而言，损失函数的设计与选择已经相当成熟。如公式\eqref{mask_loss}与公式\eqref{bbox_loss}所示，损失函数在这里使用类似Fast R-CNN\cite{Girshick2015Fast}的交叉熵来度量真实标签与预测向量的差距。只不过与目标检测的损失函数$L_{bbox}$定义不一样，实例分割的损失函数$L_{mask}$是以多阶段中继监督的形式体现出来的。在本文的实验中为了方便操作，暂时将$\beta$设置为0同时固定预训练的检测模块的参数。通过将$\alpha$设置为0.1来强化实例分割对于网络整体训练的影响。本文使用了加入中级监督的类似L2范数形式来定义姿态估计分支的损失函数\eqref{key-point_loss}。对于优化模块而言，实例分割与姿态估计两个的任务的损失函数会同时作用于网络自生成的注意力上。这样既能够达到本文最初训练能够完成多任务的优化模块的目标，又能够让网络得到更加适应数据的注意力。而通过这样的监督方法，也希望能够证明，适应数据的注意力能够在语义性上具有较强的可解释性。
-
+本文监督网络的损失函数可以被分为三部分：边界框损失函数、关键点分支损失函数与实例分割损失函数，如公式\eqref{detection_loss}。为了平衡每个分支的收敛速率，本文设计了$\beta$和$\alpha$分别控制目标检测与实例分割的损失函数权重。对于目标检测监督与实例分割监督而言，损失函数的可以被描述如下：
 \begin{align}
 L_{total} &= \beta L_{bbox} + \alpha L_{mask} + L_{key-point}\label{detection_loss}\\
 L_{bbox} &= -\sum_{c \in C}{\hat{p_c} \log{p_c^{*}}}\label{bbox_loss}\\
 L_{mask} &= -\sum_{t=1}^{T}\sum_{c \in C}{\hat{s_c} \log{s_c^{*}}}\label{mask_loss}\\
 L_{key-point} &= \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - {k_i}^{*} \right\|_2}\label{key-point_loss}
 \end{align}
+如公式\eqref{mask_loss}与公式\eqref{bbox_loss}所示，损失函数在这里使用类似Fast R-CNN\cite{Girshick2015Fast}的交叉熵来度量真实标签与预测向量的差距。只不过与目标检测的损失函数$L_{bbox}$定义不一样，实例分割的损失函数$L_{mask}$是以多阶段中继监督的形式体现出来的。在本文的实验中为了方便操作，暂时将$\beta$设置为0同时固定预训练的检测模块的参数。通过将$\alpha$设置为0.1来强化实例分割对于网络整体训练的影响。本文使用了加入中级监督的类似L2范数形式来定义姿态估计分支的损失函数\eqref{key-point_loss}。对于优化模块而言，实例分割与姿态估计两个的任务的损失函数会同时作用于网络自生成的注意力上。这样既能够达到本文最初训练能够完成多任务的优化模块的目标，又能够让网络得到更加适应数据的注意力。而通过这样的监督方法，也希望能够证明，适应数据的注意力能够在语义性上具有较强的可解释性。
+
+
 
 \subsection{梯度分析}
 \label{subsec:gradient}
@@ -317,7 +319,7 @@ L_{key-point} &= \sum_{t=1}^{T}\sum_{i \in I}\sum_{k \in K}{\left\| \hat{k_i} - 
 \label{eq:L2Mt}
 \frac{\partial L}{\partial M_t} = \alpha\frac{\partial L_{mask}}{\partial M_t}
 \end{equation}
-同样地，根据公式\eqref{mask_loss}中定义，分割任务损失也仅与分割输出$M$有关，故不难得出$\frac{L_{mask}}{\partial K_t}=0$。那么全局损失函数对于关键点分支的输出影响同样可以被推导为
+同样地，根据公式\eqref{mask_loss}中定义，分割任务损失也仅与分割输出$M$有关，故不难得出$\frac{L_{mask}}{\partial K_t}=0$。那么全局损失函数对于关键点分支的输出影响同样可以被推导为：
 \begin{equation}
 \label{eq:L2Kt}
 \frac{\partial L}{\partial K_t} = \frac{\partial L_{key-point}}{\partial K_t}
