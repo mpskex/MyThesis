@@ -1,6 +1,6 @@
 \chapter{实验验证与分析}
 \label{cha:exp}
-本节在COCO2017数据集上对比了现有方法与本文方法的性能指标，并通过设计多个对比消融实验分别证明了本文中提出的优化模块以及损失函数平衡策略的有效性。通过大量图例以及可视化结果，展示网络模型同时给出分割结果和姿态估计结果的性能，并证明本文提出弱监督下空间注意力的有效性。
+本节在COCO2017数据集上对比了现有方法与本文方法的性能指标，并通过设计多个对比消融实验分别证明了本文中提出的优化模块以及损失函数平衡策略的有效性。通过大量定量与定性实验展示网络模型同时给出分割结果和姿态估计结果的性能，并证明本文提出弱监督下空间注意力的有效性。
 \section{数据集与评价指标}
 \label{sec:dataset}
 COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170万个关键点信息。本文在使用该数据集时，对数据集中的关键点标注信息进行了清洗。本文将小于3个关键点的数据过滤，在训练数据集中选出了满足要求的26万条训练数据以及用于验证的1.1万条数据。每条数据由关键点信息以及目标框组成。本文使用数据集中的关键点、人体实例分割以及目标框的标注信息整体训练网络。
@@ -70,11 +70,11 @@ COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170�
 
 \begin{figure}[H]
 	\centering
-	\begin{subfigure}{0.3\linewidth}
+	\begin{subfigure}{0.2\linewidth}
 		\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507.png}
 		\caption{原始图像}
 	\end{subfigure}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.2\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage1_atten.png}
@@ -89,7 +89,7 @@ COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170�
 		\end{subfigure}
 		\caption{遮挡人}
 	\end{subfigure}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.2\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid12_stage1_atten.png}
@@ -104,13 +104,13 @@ COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170�
 		\end{subfigure}
 		\caption{被遮挡人}
 	\end{subfigure}
-	\begin{minipage}{0.05\linewidth}
+	\begin{minipage}{0.03\linewidth}
 		\rotatebox[origin=c]{90}{\centering 阶段2}
 		
-		\vskip2cm
+		\vskip1.5	cm
 		\rotatebox[origin=c]{90}{\centering 阶段3}
 		
-		\vskip2cm
+		\vskip1.5cm
 		\rotatebox[origin=c]{90}{\centering 阶段4}
 	\end{minipage}
 	\caption{在$\alpha=0.1$遮挡情况下的空间注意力可视化结果}
@@ -121,9 +121,9 @@ COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170�
 
 在全局损失函数(公式\eqref{detection_loss})中不同的$\alpha$会影响注意力的生成。根据\ref{subsec:gradient}节中的推导，更低的$\alpha$会引导注意力在训练过程中缺少来自实例分割的引导。这会让注意力关注的区域更加零散，使其难以引导关键点分支划分人体区域。本文在使用不同$\alpha$取值下训练网络，对比不同$\alpha$对注意力区域生成的影响。如图\ref{fig:attenalpha}所示，在$\alpha=0.1$下训练的网络生成的空间注意力，不论从精细程度还是完整程度都优于$\alpha=0.01$下训练得到网络生成的结果。
 
-\begin{figure}[H]
+\begin{figure}
 	\centering
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.2\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage3_atten.png}
@@ -134,7 +134,7 @@ COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170�
 		\end{subfigure}
 		\caption{$\alpha=0.1$}
 	\end{subfigure}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.2\textwidth}
 		\centering
 		\begin{subfigure}{\linewidth}
 			\includegraphics[width=\linewidth, trim=100 50 100 50,clip]{60507_insid1_stage1_atten_alpha.png}
@@ -145,10 +145,10 @@ COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170�
 		\end{subfigure}
 		\caption{$\alpha=0.01$}
 	\end{subfigure}
-	\begin{minipage}{0.05\linewidth}
+	\begin{minipage}{0.03\linewidth}
 		\rotatebox[origin=c]{90}{\centering 遮挡人}
 		
-		\vskip2cm
+		\vskip1.5cm
 		\rotatebox[origin=c]{90}{\centering 被遮挡人}
 	\end{minipage}
 	\caption{在不同$\alpha$取值下训练得到的遮挡情况下的空间注意力可视化结果}
