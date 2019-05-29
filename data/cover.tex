@@ -19,7 +19,7 @@
   cdepartment={信息学部},
   cmajor={信息安全},
   cauthor={刘方瑞},
-  csupervisor={马伟副教授},
+  csupervisor={马伟\ 副教授},
   studentno={15143103},
   %cassosupervisor={陈文光教授}, % 副指导老师
   %ccosupervisor={某某某教授}, % 联合指导老师
@@ -70,18 +70,18 @@
 
 % 定义中英文摘要和关键字
 \begin{cabstract}
-  多人姿态检测与跟踪是计算机视觉领域的热门话题，在商业应用与工业场景中拥有广阔的市场。然而现有的多人姿态检测与跟踪算法存在诸多亟待解决的问题。由于在自然图像中的人体存在大量遮挡，如何对被遮挡的人体进行姿态检测是一个相当有挑战的任务。虽然自顶向下与自底向上两类多人姿态估计方法各自都在尝试解决遮挡下的姿态估计，但两类方法都各自面临误差传播和假阳性检测干扰的问题。这让这两种方法都难以较好地解决遮挡下多人姿态估计中存在的问题。
+	多人姿态检测与跟踪是计算机视觉领域的重要研究课题，拥有广阔的研究前景。现有的多人姿态检测与跟踪算法存在诸多亟待解决的问题。自然图像中的人体存在大量遮挡，提取被遮挡人体的姿态信息一直是一项相当有挑战的任务。虽然自顶向下与自底向上两类多人姿态估计方法各自都在尝试解决遮挡下的姿态估计，但两类方法都各自面临误差传播和假阳性检测干扰的问题。
   
-  本文提出了一个基于实例分割的多人姿态检测与跟踪算法，设计了能够融合实例分割的多人姿态估计网络结构来解决姿态估计中的遮挡问题。该结构能够融合实例分割任务中提取的特征信息，同时优化姿态估计与分割结果。该结构在现有的姿态估计分支中引入注意力机制，让网络获得了分辨不同人体的能力，一定程度上解决了遮挡的问题。为了弥补实例分割标注中缺失的关键点信息，本文对网络中的注意力使用了弱监督学习的方法，使用关键点与实例分割的两个损失函数间接地完成对其的约束。由于网络引入了空间注意力，因此可以应用更加宽松的检测框剪裁策略，来弥补在传统两类方法中出现的误差传播与假阳性检测干扰的问题。
+	本文提出一个基于实例分割的多人姿态检测与跟踪算法，设计了能够融合实例分割的多人姿态估计网络结构来解决姿态估计中的遮挡问题。该结构能够利用实例分割任务中提取的特征信息，同时优化姿态估计与分割结果。该结构在现有的姿态估计分支中引入注意力机制，帮助网络分辨不同人体区域，一定程度上解决了多人场景下的互遮挡问题。本文对网络中的注意力引入弱监督学习的方法，使用来自关键点与实例分割的两个损失函数间接约束注意力生成，以鼓励网络生成对被遮挡部分的关注。此外，空间注意力不仅引导网络分别对不同人体给出姿态估计，也提高了网络对不准确特征裁剪的适应性，弥补在传统两类方法中出现的误差传播与假阳性检测干扰的问题。
   
-本文的创新点在于提出了全新的网络结构，通过引入实例分割信息而改善多人姿态估计中的遮挡问题。同时为了达成引入实例分割信息的目标，本文提出了以下细节创新点：
-\begin{itemize}
- 	\item 引入注意力机制让网络自主学习关注区域；
- 	\item 对于难以显式监督的注意力，使用弱监督方法隐式限制注意力的形成。
- 	\item 设计了消融实验来证明注意力机制的引入改善了多人姿态估计分支的性能。
-\end{itemize}
+	本文的创新点在于提出一种融合实例分割的多人姿态估计网络结构，通过弱监督下的空间注意力改善多人姿态估计中的遮挡问题。本文提出的主要创新点如下：
+	\begin{itemize}
+		\item 提出一种全新的融合人体实例分割的多人姿态联合优化网络结构
+	 	\item 引入注意力机制让网络自主学习完整人体区域；
+	 	\item 对于难以显式监督的注意力，使用弱监督方法隐式限制注意力的形成。
+	\end{itemize}
   
-  通过上述结构，本文提出的方法能够在结合自顶向上与自底向上的多人姿态方法优势的基础上，改善两类方法的劣势，以完成对在遮挡情况下姿态估计的目标。通过实验证明，本文方法的速度与精度均已达到现有方法的性能指标，并且有所提升。并且本文方法可以在实时地完成多人场景下的姿态检测与跟踪。
+	通过上述结构，本文提出的方法能够在结合自顶向上与自底向上的多人姿态方法优势的基础上，改善两类方法的劣势，以完成对在遮挡情况下姿态估计的目标。通过实验证明，本文方法的速度与精度均已达到现有方法的性能指标，并且有所提升。并且本文方法可以在实时地完成多人场景下的姿态检测与跟踪。
 
 \end{cabstract}
 
@@ -89,15 +89,15 @@
 % \ckeywords{计算机视觉, 人体姿态估计, 实例分割, 注意力机制, 弱监督学习}
 
 \begin{eabstract}
-Multi-person pose estimation is a practical and fundamental research topic in computer vision, which intend to localize all key-points of a person's body using image-based observations. It is a challenging task due to various body shapes and occlusion. Current methods to monocular multi-person pose estimation are categorized into top-down and bottom-up methods, while both of these two approaches have their own constraints. Top-down methods suffer from error propagation while bottom-up methods are easily interfered by false-positive detection of key-points.
+Multi-person pose estimation is a practical and fundamental research topic in computer vision, which intends to localize all key-points of a person's body using image-based observation. It is a challenging task due to various body shapes and occlusion. Current methods to monocular multi-person pose estimation are categorized into top-down and bottom-up methods, while both of these two approaches have their own drawbacks. Top-down methods suffer from error propagation while bottom-up methods are easily interfered by false-positive detection of key-points.
 
-In this work, we propose a novel architecture for multi-person pose estimation which introduces spatial attention, merging features from instance segmentation to improve key-point detection over instances. As the instance segmentation fails to supervise spatial attention due to its incompleteness on occluded body parts, we train attention using weakly supervised learning techniques, which would stimulate the network to include invisible body parts. Since we applied spatial attention to our method, the loose feature cropping strategy we adopted gives tolerance to detected bounding boxes and limit the area of key-point detection, which tackles the problem in both top-down and bottom-up methods.
+In this work, we propose a novel architecture for multi-person pose estimation which introduces spatial attention, merging features from instance segmentation to improve key-point detection over instances. As the instance segmentation fails to supervise spatial attention due to its incompleteness on occluded body parts, we train attention using weakly supervised learning techniques, which would stimulate the network to include invisible body parts. Since we applied spatial attention to our method, the loose feature cropping strategy we adopted gives tolerance to inaccurate detected bounding boxes and limits the area of key-point detection, which tackles the problem in both top-down and bottom-up methods.
 
 The highlight of our method is the refine modules that fuse information from instance segmentation, which is achieved by:
 \begin{itemize}
+	\item Designing a new multi-staged refine architecture that refines both key-point detection and segmentation.
 	\item Introducing attention mechanism which guide the network focus on specific area;
 	\item Using techniques in weakly supervised learning to train the spatial attention which consider all parts of a human body even if they are invisible in the image;
-	\item Designing ablation experiments that proves the effectiveness of our architecture.
 \end{itemize}
 
 With the help of mutual promotion from the proposed architecture, our method is able to generate accurate pose results without most drawbacks in top-down or bottom-up approaches. Experiments on benchmark shows that the our model achieves comparable results to other state-of-the-art methods in real-time level performances.

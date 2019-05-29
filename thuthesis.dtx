@@ -3104,6 +3104,23 @@
 %    \end{macrocode}
 % \end{environment}
 %
+% \changes{v5.5.1.BJUT.06}{2019/05/28}{根据一些导师呼应增加已提交的学术论文和专利}
+% \subsubsection{已提交工作和学术专利}
+% \label{sec:subwork}
+%
+% \begin{environment}{submittedwork}
+% 已提交工作和学术专利
+%    \begin{macrocode}
+\NewDocumentEnvironment{submittedwork}{o}{%
+    \clearpage
+    \thu@chapter*{已提交的学术论文和专利}
+  }
+  {
+    \relax
+  }
+%    \end{macrocode}
+% \end{environment}
+%
 % \subsubsection{致谢以及声明}
 % \label{sec:ackanddeclare}
 %

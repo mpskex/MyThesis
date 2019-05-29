@@ -753,8 +753,6 @@
 本人完全了解北京工业大学有关保留、使用学位论文的规定，即：学校有权保留送交论文的
 复印件，允许论文被查阅和借阅；学校可以公布论文的全部或部分内容，可以采用影印、缩
 印或其他复制手段保存论文。
-（保密的论文在解密后应遵守此规定）
-
 \else
 本人完全了解北京工业大学有关保留、使用学位论文的规定，即：
 
@@ -768,7 +766,7 @@
 本人保证遵守上述规定。
 \fi}
 \newcommand{\thu@authorizationaddon}{%
-  \ifthu@bachelor(涉密的学位论文在解密后应遵守此规定)\else （保密的论文在解密后应遵守此规定）\fi}
+  \ifthu@bachelor（保密的论文在解密后应遵守此规定）\else （保密的论文在解密后应遵守此规定）\fi}
 \newcommand{\thu@authorsig}{\ifthu@bachelor 签\hskip1em名：\else 作者签名：\fi}
 \newcommand{\thu@teachersig}{导师签名：}
 \newcommand{\thu@frontdate}{%
@@ -1138,6 +1136,13 @@
   {
     \relax
   }
+\NewDocumentEnvironment{submittedwork}{o}{%
+    \clearpage
+    \thu@chapter*{已提交的学术论文和专利}
+  }
+  {
+    \relax
+  }
 \NewDocumentEnvironment{acknowledgement}{o}{%
     \thu@chapter*{\thu@ack@name}
   }
@@ -1215,8 +1220,7 @@
 }{}{}
 \let\thu@appendix\appendix
 \renewenvironment{appendix}{%
-  \cleardoublepage
-  \thispagestyle{thu@translatehdr}
+  \clearpage
   \pagestyle{thu@translatehdr}
   \let\title\thu@appendix@title
   \thu@appendix
