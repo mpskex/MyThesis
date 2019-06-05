@@ -363,6 +363,12 @@
   \fancyfoot[C]{\wuhao\thepage}
   \renewcommand{\headrulewidth}{0.4pt}
   \renewcommand{\footrulewidth}{0pt}}
+\fancypagestyle{thu@outstandingabstracthdr}{%
+  \fancyhead{}
+  \fancyfoot{}
+  \fancyfoot[C]{\wuhao\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}}
 \fancypagestyle{thu@translatehdr}{%
   \fancyhead{}
   \fancyhead[C]{\lishu \sanhao 北京工业大学毕业设计（译文）}
@@ -671,6 +677,10 @@
 \newenvironment{cabstract}{\Collect@Body\thu@@cabstract}{}
 \newcommand{\thu@@eabstract}[1]{\long\gdef\thu@eabstract{#1}}
 \newenvironment{eabstract}{\Collect@Body\thu@@eabstract}{}
+\newcommand{\thu@@cabstractextra}[1]{\long\gdef\thu@cabstractextra{#1}}
+\newenvironment{cabstractextra}{\Collect@Body\thu@@cabstractextra}{}
+\newcommand{\thu@@eabstractextra}[1]{\long\gdef\thu@eabstractextra{#1}}
+\newenvironment{eabstractextra}{\Collect@Body\thu@@eabstractextra}{}
 \def\thu@parse@keywords#1{
   \define@key{thu}{#1}{\csname #1\endcsname{##1}}
   \expandafter\gdef\csname thu@#1\endcsname{}
@@ -1091,6 +1101,12 @@
     \ifthu@bachelor\indent\else\noindent\hangindent\wd\thu@kw\hangafter1\fi%
     \box\thu@kw#2\par
   \endgroup}
+  \newcommand\thu@put@keywordsextra[2]{%
+  \begingroup
+    \setbox\thu@kw=\hbox{#1}
+    \ifthu@bachelor\noindent\else\noindent\hangindent\wd\thu@kw\hangafter1\fi%
+    \box\thu@kw#2\par
+  \endgroup}
 \newcommand{\thu@makeabstract}{%
   \ifthu@bachelor\clearpage\else\cleardoublepage\fi
   \thu@setchinese
@@ -1134,6 +1150,122 @@
     \thu@chapter*{结论与展望}
   }
   {
+    \relax
+  }
+\newcommand{\thu@makeabstractextra}{%
+  \thu@setchinese
+  {
+    {\heiti\xiaosi[1.75]\centerline{摘要}}
+    \songti\wuhao[1.75]
+    \thu@cabstractextra
+
+    \thu@put@keywordsextra{\textbf{\thu@ckeywords@title}}{\thu@ckeywords}
+  }
+
+  \thu@setenglish
+  {
+    {\xiaosi[1.75]\centerline{\eabstractname}}
+    \wuhao[1.75]
+    \thu@eabstractextra
+
+    \thu@put@keywordsextra{%
+      \textbf{\ifthu@bachelor Keywords:\else Key Words:\fi\enskip}}{\thu@ekeywords}
+  }
+
+  \thu@setdefaultlanguage
+}
+\NewDocumentEnvironment{outstandingabstract}{o}{%
+    \clearpage
+    % 应用新的页面边距信息
+    \newgeometry{
+      hoffset=5.4mm,
+      top=25.4mm,
+      left=20mm,
+      headheight=5mm,
+      headsep=5mm,
+      right=20mm,
+      bottom=25.4mm,
+      footskip=12mm}
+    % 设置页面格式
+    \pagestyle{thu@outstandingabstracthdr}
+    % 标题以及作者信息以及指导教师
+    \heiti\sanhao\centerline{\thu@ctitle}
+    \kaishu\xiaosi
+    \centerline{\textbf{\thu@cmajor\hskip1em\thu@studentno\hskip1em\thu@cauthor}}
+    \centerline{\textbf{\thu@supervisor@title\hskip1em\thu@csupervisor}}
+    \thu@makeabstractextra
+    % 设置节格式
+    \setcounter{chapter}{0}
+    \setcounter{section}{0}
+    \ctexset{%
+      section={
+        beforeskip={0pt},
+        afterskip={0pt},
+        number={\arabic{section}},
+        format={\wuhao\songti\bfseries},
+        numberformat={\wuhao\songti\bfseries},
+      },
+      subsection={
+        beforeskip={0pt},
+        afterskip={0pt},
+        number={\arabic{section}.\arabic{subsection}},
+        format={\wuhao\songti},
+        numberformat={\wuhao\songti},
+      },
+      subsubsection={
+        beforeskip={0pt},
+        afterskip={0pt},
+        number={(\arabic{subsubsection})},
+        numberformat={\wuhao\songti},
+        indent=2em,
+        format={\wuhao\songti},
+      }
+    }
+
+    % 参考文献格式
+    \renewcommand\bibsection{\heiti\xiaosi[1.25]\centerline{\bibname}}
+    \renewcommand\bibfont{\wuhao[1.75]}
+
+    \songti\wuhao[1.75]
+  }
+  {
+    \restoregeometry
+    \ctexset{%
+      chapter={
+        afterindent=true,
+        pagestyle={\ifthu@bachelor thu@plain\else thu@headings\fi},
+        beforeskip={\ifthu@bachelor 15bp\else 9bp\fi},
+        aftername=\hskip\ccwd,
+        afterskip={\ifthu@bachelor 20bp\else 24bp\fi},
+        format={\centering\songti\ifthu@bachelor\xiaoer[1.333]\bfseries\else\sanhao[1]\fi},
+        nameformat=\relax,
+        numberformat=\relax,
+        titleformat=\thu@chapter@titleformat,
+        lofskip=0pt,
+        lotskip=0pt,
+      },
+      section={
+        afterindent=true,
+        beforeskip={\ifthu@bachelor 25bp\else 24bp\fi\@plus 1ex \@minus .2ex},
+        afterskip={\ifthu@bachelor 12bp\else 6bp\fi \@plus .2ex},
+        format={\songti\ifthu@bachelor\xiaosan[1.286]\bfseries\else\sihao[1.429]\fi},
+      },
+      subsection={
+        afterindent=true,
+        beforeskip={\ifthu@bachelor 12bp\else 16bp\fi\@plus 1ex \@minus .2ex},
+        afterskip={6bp \@plus .2ex},
+        format={\songti\ifthu@bachelor\sihao[1.25]\bfseries\else\banxiaosi[1.538]\fi},
+        numberformat={\songti\ifthu@bachelor\sihao[1.154]\bfseries\else\banxiaosi[1.538]\fi},
+      },
+      subsubsection={
+        afterindent=true,
+        beforeskip={\ifthu@bachelor 12bp\else 16bp\fi\@plus 1ex \@minus .2ex},
+        afterskip={6bp \@plus .2ex},
+        indent={0em},
+        format={\songti\ifthu@bachelor\xiaosi[1.25]\bfseries\else\xiaosi[1.667]\fi},
+      },
+      paragraph/afterindent=true,
+      subparagraph/afterindent=true}
     \relax
   }
 \NewDocumentEnvironment{submittedwork}{o}{%
