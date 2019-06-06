@@ -1,0 +1,106 @@
+\thusetup{
+  %******************************
+  % 注意：
+  %   1. 配置里面不要出现空行
+  %   2. 不需要的配置信息可以删除
+  %******************************
+  %
+  %=====
+  % 秘级
+  %=====
+  secretlevel={秘密},
+  secretyear={10},
+  %
+  %=========
+  % 中文信息
+  %=========
+  ctitle={基于实例分割的多人姿态检测与跟踪算法的设计与实现},
+  cdegree={工学学士},
+  cdepartment={信息学部},
+  cmajor={信息安全},
+  cauthor={刘方瑞},
+  csupervisor={马伟},
+  studentno={15143103},
+  %cassosupervisor={陈文光教授}, % 副指导老师
+  %ccosupervisor={某某某教授}, % 联合指导老师
+  % 日期自动使用当前时间，若需指定按如下方式修改：
+  % cdate={超新星纪元},
+  %
+  % 博士后专有部分
+  catalognumber     = {分类号},  % 可以留空
+  udc               = {UDC},  % 可以留空
+  id                = {编号},  % 可以留空： id={},
+  cfirstdiscipline  = {计算机科学与技术},  % 流动站（一级学科）名称
+  cseconddiscipline = {系统结构},  % 专 业（二级学科）名称
+  postdoctordate    = {2009 年 7 月——2011 年 7 月},  % 工作完成日期
+  postdocstartdate  = {2009 年 7 月 1 日},  % 研究工作起始时间
+  postdocenddate    = {2011 年 7 月 1 日},  % 研究工作期满时间
+  %
+  %=========
+  % 英文信息
+  %=========
+  etitle={Weakly Supervised Feature-level Attention for Instance-aware Multi-Person Pose Estimation},
+  % 这块比较复杂，需要分情况讨论：
+  % 1. 学术型硕士
+  %    edegree：必须为Master of Arts或Master of Science（注意大小写）
+  %             “哲学、文学、历史学、法学、教育学、艺术学门类，公共管理学科
+  %              填写Master of Arts，其它填写Master of Science”
+  %    emajor：“获得一级学科授权的学科填写一级学科名称，其它填写二级学科名称”
+  % 2. 专业型硕士
+  %    edegree：“填写专业学位英文名称全称”
+  %    emajor：“工程硕士填写工程领域，其它专业学位不填写此项”
+  % 3. 学术型博士
+  %    edegree：Doctor of Philosophy（注意大小写）
+  %    emajor：“获得一级学科授权的学科填写一级学科名称，其它填写二级学科名称”
+  % 4. 专业型博士
+  %    edegree：“填写专业学位英文名称全称”
+  %    emajor：不填写此项
+  edegree={Bachelor of Engineer},
+  emajor={Faculty of Information},
+  eauthor={Liu Fangrui},
+  esupervisor={Professor Ma Wei},
+  %eassosupervisor={Chen Wenguang},
+  % 日期自动生成，若需指定按如下方式修改：
+  % edate={December, 2005}
+  %
+  % 关键词用“英文逗号”分割
+  ckeywords={计算机视觉, 人体姿态估计, 实例分割, 注意力机制, 弱监督学习},
+  ekeywords={Computer Vision, Human Pose Estimation, Instance Segmentation, Attention Mechanism, Weakly Supervised Learning}
+}
+
+% 定义中英文摘要和关键字
+\begin{cabstract}
+	多人姿态检测与跟踪是计算机视觉领域的重要研究课题，拥有广阔的应用前景。多人姿态检测与跟踪面临诸多挑战。其中核心挑战为单张固定视角图像中人与人之间的互遮挡问题。现有多人姿态估计方法难以较好解决该问题。
+
+	本文提出基于实例分割的多人姿态估计网络结构，能够在单张图像上准确提取多人人体姿态信息，从而实现序列图像多人姿态的检测与跟踪。所提出结构通过双任务的深度融合，能够借助实例分割线索区分不同人体区域，更好地解决多人姿态估计中的遮挡问题；同时，借助姿态检测结果反向优化实例分割。为了有效区分不同人体区域，所提出网络结构在其姿态估计分支中引入注意力机制。鉴于现有可用的实例分割真值缺失人体被遮挡部分的数据，难以用于人体区域注意力的生成，本文引入弱监督学习策略，使用来自关键点与实例分割的两个损失函数间接约束注意力产生过程，以鼓励被遮挡区域的生成。
+
+	本文主要创新之处在于提出了一种融合实例分割的多人姿态估计网络结构，相比现有方法，能够更加有效地克服多人场景中的互遮挡问题，并且能够优化实例分割结果。所提出网络结构的细节创新如下：
+	\begin{itemize}
+		\item 提出一种基于人体实例分割的多人姿态估计网络结构，将实例分割和多人姿态估计任务融合在统一的深度学习框架下。
+	 	\item 引入注意力机制让网络自主学习完整人体区域的生成，柔性融合人体分割和多人姿态网络这两个完全不同任务的同时，克服人体互遮挡问题。
+	 	\item 提出使用弱监督方法隐式限制注意力形成，克服现有实例分割真值数据的缺失问题。
+	\end{itemize}
+
+	本文在公开数据集上分别采用定量和定性实验验证了提出方法。实验证明：所提出方法在多人姿态估计和实例分割两方面，准确度均优于现有方法。同时，本文对所提出方法的核心模块进行了消融实验验证，证明了这些模块在提升多人姿态估计和实例分割准确度方面的有效性。
+
+\end{cabstract}
+
+% 如果习惯关键字跟在摘要文字后面，可以用直接命令来设置，如下：
+% \ckeywords{计算机视觉, 人体姿态估计, 实例分割, 注意力机制, 弱监督学习}
+
+\begin{eabstract}
+Multi-person pose estimation is a practical and fundamental research topic in computer vision with many potential applications. There are many challenges in multi-person pose estimation, one of which is to detect multi-person poses from monocular images of crowd scenes. Current methods fail in overcoming occlusion problem widely existing in the multi-person pose estimation task.
+
+In this work, we propose a novel deep learning architecture for multi-person pose estimation. It can locate multi-persons in single images, thereby achieving multi-person pose detection and tracking in image sequences. It integrates information from instance segmentation, by generating spatial attention to merge features from the two tasks. The proposed architecture effectively improves both pose estimation and instance segmentation. In order to distinguish difference instances, we utilize attention mechanism in the proposed network. Since it is incomplete in occluded body parts, the ground truth of instance segmentation cannot be used to supervise the training of spatial attention. We train the attention module with weakly supervised learning techniques. This stimulates the proposed network to successfully extract poses in occluded body parts.
+
+The highlight of our method is the proposed deep learning architecture for multi-person pose estimation that fuses information from instance segmentation to overcome the occlusion problem. It can optimize instance segmentation simultaneously. The detail contributions include:
+\begin{itemize}
+	\item Designing a new deep architecture that improves both key-point detection and segmentation.
+	\item Introducing attention mechanism which guides the network to only focus on regions of specific instances;
+	\item Using technique of weakly supervised learning to train the spatial attention module which considers all parts of a human body even if they are invisible from the image;
+\end{itemize}
+
+We evaluate the proposed network in public data-sets qualitatively and quantitatively. Experiments demonstrate that the proposed network outperforms state-of-the-art methods in aspects of both multi-person pose estimation and instance segmentation. In the meanwhile, we perform ablation study for the key modules of the proposed network to validate their effectiveness in promoting multi-person pose estimation and instance segmentation. 
+\end{eabstract}
+
+% \ekeywords{Computer Vision, Human Pose Estimation, Instance Segmentation, Attention Mechanism, Weakly Supervised Learning}

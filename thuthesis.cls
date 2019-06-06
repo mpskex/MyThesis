@@ -493,8 +493,8 @@
   \g@addto@macro\appendix{\renewcommand*{\thetable}{\thechapter-\arabic{table}}}
 \fi
 \let\old@tabular\@tabular
-\def\thu@tabular{\dawu[1.5]\old@tabular}
-\DeclareCaptionFont{thu}{\dawu[1.3]}
+\def\thu@tabular{\wuhao[1.5]\old@tabular}
+\DeclareCaptionFont{thu}{\wuhao[1.3]}
 \DeclareCaptionLabelSeparator{thu}{\hspace{\ccwd}}
 \captionsetup{
   font           = thu,
@@ -507,7 +507,7 @@
 \renewcommand{\thesubfigure}{(\alph{subfigure})}
 \renewcommand{\thesubtable}{(\alph{subtable})}
 \let\thu@LT@array\LT@array
-\def\LT@array{\dawu[1.5]\thu@LT@array} % set default font size
+\def\LT@array{\wuhao[1.5]\thu@LT@array} % set default font size
 \def\hlinewd#1{%
   \noalign{\ifnum0=`}\fi\hrule \@height #1 \futurelet
     \reserved@a\@xhline}
@@ -1178,9 +1178,9 @@
     \clearpage
     % 应用新的页面边距信息
     \newgeometry{
-      hoffset=5.4mm,
+      asymmetric,
       top=25.4mm,
-      left=20mm,
+      left=25.4mm,
       headheight=5mm,
       headsep=5mm,
       right=20mm,
@@ -1189,8 +1189,8 @@
     % 设置页面格式
     \pagestyle{thu@outstandingabstracthdr}
     % 标题以及作者信息以及指导教师
-    \heiti\sanhao\centerline{\thu@ctitle}
-    \kaishu\xiaosi
+    \heiti\sanhao[1.75]\centerline{\thu@ctitle}
+    \kaishu\xiaosi[1.75]
     \centerline{\textbf{\thu@cmajor\hskip1em\thu@studentno\hskip1em\thu@cauthor}}
     \centerline{\textbf{\thu@supervisor@title\hskip1em\thu@csupervisor}}
     \thu@makeabstractextra
@@ -1202,28 +1202,28 @@
         beforeskip={0pt},
         afterskip={0pt},
         number={\arabic{section}},
-        format={\wuhao\songti\bfseries},
-        numberformat={\wuhao\songti\bfseries},
+        format={\wuhao[1.75]\songti\bfseries},
+        numberformat={\wuhao[1.75]\songti\bfseries},
       },
       subsection={
         beforeskip={0pt},
         afterskip={0pt},
         number={\arabic{section}.\arabic{subsection}},
-        format={\wuhao\songti},
+        format={\wuhao[1.75]\songti},
         numberformat={\wuhao\songti},
       },
       subsubsection={
         beforeskip={0pt},
         afterskip={0pt},
         number={(\arabic{subsubsection})},
-        numberformat={\wuhao\songti},
+        numberformat={\wuhao[1.75]\songti},
         indent=2em,
-        format={\wuhao\songti},
+        format={\wuhao[1.75]\songti},
       }
     }
 
     % 参考文献格式
-    \renewcommand\bibsection{\heiti\xiaosi[1.25]\centerline{\bibname}}
+    \renewcommand\bibsection{\heiti\xiaosi[1.75]\centerline{\bibname}}
     \renewcommand\bibfont{\wuhao[1.75]}
 
     \songti\wuhao[1.75]
