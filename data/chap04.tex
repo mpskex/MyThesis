@@ -5,7 +5,7 @@
 \label{sec:dataset}
 COCO2017数据集\cite{lin2014microsoft}包含了15万个人体以及将近170万个关键点信息。本文在使用该数据集时，对数据集中的关键点标注信息进行了清洗。本文将小于3个关键点的数据过滤，在训练数据集中选出了满足要求的26万条训练数据以及用于验证的1.1万条数据。每条数据由关键点信息以及目标框组成。本文使用数据集中的关键点、人体实例分割以及目标框的标注信息整体训练网络。
 
-为验证在\ref{sec:refine}节中所提出的网络结构，本文使用平均准确度(mAP, mean Average Precision)\cite{zhu2004recall}作为评价指标，设计消融自对比实验与性能对比实验。在实验中本文使用了COCO2017验证数据集作为本文测试数据来源。平均准确度指标旨在统计一定容忍度下关键点的命中情况，通过计算交并比(IoU, Intersection over Union)求得不同物体关键点相似度(OKS，Object Key-point Similarity)\footnote{物体关键点相似度从0.5取值至0.95，间隔为0.01。}下的准确率，并对这些准确率进行积分得到最终平均准确度\cite{ruggero2017benchmarking}。
+为验证在\ref{sec:refine}节中所提出的网络结构，本文使用平均准确度(mAP, mean Average Precision)\cite{zhu2004recall}作为评价指标，设计消融自对比实验与性能对比实验。在实验中本文使用了COCO2017验证数据集作为本文测试数据来源。平均准确度指标旨在统计一定容忍度下关键点的命中情况，通过计算交并比(IoU, Intersection over Union)求得不同物体关键点相似度(OKS，Object Key-point Similarity)\footnote{物体关键点相似度从0.5取值至0.95，间隔为0.01。}下的准确率，并对这些准确率进行积分得到最终平均准确度\cite{ruggero2017benchmarking}。此外，指标还抽取一些关键点相似度，通常为0.5与0.75，来衡量算法在不同精度要求下的命中情况。
 
 % TODO:	对比度调整
 \begin{figure}
