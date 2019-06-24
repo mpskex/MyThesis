@@ -1066,12 +1066,7 @@
     \par{\xiaosi\parindent2em\thu@declaretext}\vskip2cm
     {\xiaosi\hfill\thu@signature\thu@underline[2.5cm]\relax%
       \thu@backdate\thu@underline[2.5cm]\relax}%
-  }{%
-  % 该部分会被特殊替换掉，之后使用宏控制嵌入
-    \includepdf[pagecommand={\thispagestyle{thu@empty}%
-      \phantomsection\addcontentsline{toc}{chapter}{\thu@declarename}%
-    }]{#1}%
-  }%
+  }
 \fi
     \ifthu@postdoctor\relax\else%
       \IfNoValueTF{#1}{%
